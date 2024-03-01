@@ -46,7 +46,6 @@ from pyomo.environ import (
 )
 from pyomo.common.config import ConfigValue, In, Integer
 from pyomo.util.calc_var_value import calculate_variable_from_constraint
-from pyomo.common.deprecation import deprecated
 
 # Import IDAES cores
 from idaes.core import declare_process_block_class
@@ -62,13 +61,6 @@ __author__ = "Paul Akula, Andrew Lee"
 _log = idaeslog.getLogger(__name__)
 
 
-@deprecated(
-    "The Plate Heat Exchanger (PHE) model is known to be affected by "
-    "issues causing it to fail to solve on certain platforms starting with Pyomo v6.7.0. "
-    "This might cause the model to be removed in an upcoming IDAES release if these failures are not resolved. "
-    "For more information, see IDAES/idaes-pse#1294",
-    version="2.3.0",
-)
 @declare_process_block_class("PlateHeatExchanger")
 class PlateHeatExchangerData(HeatExchangerNTUData):
     """Plate Heat Exchanger(PHE) Unit Model."""
@@ -137,7 +129,7 @@ class PlateHeatExchangerData(HeatExchangerNTUData):
 
         # Units will be based on hot side properties
         units_meta = (
-            self.hot_side.config.property_package.get_metadata().get_derived_units
+            self.config.hot_side.property_package.get_metadata().get_derived_units
         )
 
         # ---------------------------------------------------------------------
@@ -195,7 +187,7 @@ class PlateHeatExchangerData(HeatExchangerNTUData):
             initialize=0.2045,
             units=units_meta("length"),
             domain=PositiveReals,
-            doc="Port diameter",
+            doc="Port diamter",
         )
 
         self.plate_therm_cond = Var(
@@ -584,7 +576,7 @@ class PlateHeatExchangerData(HeatExchangerNTUData):
                      default solver options)
             solver : str indicating which solver to use during
                      initialization (default = None, use default solver)
-            duty : an initial guess for the amount of heat transferred. This
+            duty : an initial guess for the amount of heat transfered. This
                 should be a tuple in the form (value, units), (default
                 = (1000 J/s))
 
@@ -627,7 +619,7 @@ class PlateHeatExchangerData(HeatExchangerNTUData):
         if duty is None:
             # Assume 1000 J/s and check for unitless properties
             if s1_units is None and s2_units is None:
-                # Backwards compatibility for unitless properties
+                # Backwards compatability for unitless properties
                 s1_duty = -1000
                 s2_duty = 1000
             else:

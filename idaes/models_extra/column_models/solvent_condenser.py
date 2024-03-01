@@ -14,7 +14,7 @@
 Condenser model for solvent columns.
 
 This is a simple model for a condenser in the case where liquid and vapor
-phases have separate property packages, such as the case of solvent columns.
+phases have separate proeprty packages, such as the case of solvent columns.
 
 Assumptions:
      * Steady-state only
@@ -61,13 +61,13 @@ _log = idaeslog.getIdaesLogger(__name__)
 class SolventCondenserData(UnitModelBlockData):
     """
     Condenser unit for solvent column models using separate property packages
-    for liquid and vpor phases.
+    for liquid and vapor phases.
 
     Unit model to condense the vapor from the top of a solvent column.
     """
 
     CONFIG = ConfigBlock()
-    # TODO: Add dynamics in future
+    # TOOO: Add dynamics in future
     CONFIG.declare(
         "dynamic",
         ConfigValue(
@@ -281,7 +281,7 @@ see property package for documentation.}""",
         )
 
         # ---------------------------------------------------------------------
-        # Check flow basis is compatible
+        # Check flow basis is compatable
         # TODO : Could add code to convert flow bases, but not now
         t_init = self.flowsheet().time.first()
         if (
@@ -321,11 +321,11 @@ see property package for documentation.}""",
         flow_basis = self.liquid_phase[t_init].get_material_flow_basis()
         if flow_basis == MaterialFlowBasis.molar:
             fb = "flow_mole"
-        elif flow_basis == MaterialFlowBasis.molar:
-            fb = "flow_mass"
+        # elif flow_basis == MaterialFlowBasis.mass:
+        #     fb = "flow_mass"
         else:
             raise ConfigurationError(
-                f"{self.name} SolventCondenser only supports mass or molar "
+                f"{self.name} SolventCondenser only supports molar "
                 f"basis for MaterialFlowBasis."
             )
 
@@ -355,7 +355,7 @@ see property package for documentation.}""",
                     == blk.zero_flow_param
                 )
             else:
-                # Non-condensable component
+                # Non-condensable comonent
                 # Mass transfer term is zero, no vapor flowrate
                 return blk.vapor_phase.mass_transfer_term[t, "Vap", j] == 0 * vunits(fb)
 
@@ -450,7 +450,14 @@ see property package for documentation.}""",
                     ),
                 )
             elif j in self.liquid_phase.component_list:
-                iscale.constraint_scaling_transform(v, value(1 / self.zero_flow_param))
+                iscale.constraint_scaling_transform(
+                    v,
+                    iscale.get_scaling_factor(
+                        self.liquid_phase[t].get_material_flow_terms("Liq",j),
+                        default=1,
+                        warning=True,
+                    ),
+                )
             else:
                 pass  # no need to scale this constraint
 
@@ -558,7 +565,7 @@ see property package for documentation.}""",
             # Check for unindexed state variables
             for sv in liq_state_vars:
                 if "flow" in sv:
-                    # Flow variable, assume 10% condensation
+                    # Flow varaible, assume 10% condensation
                     if "phase_comp" in sv:
                         # Flow is indexed by phase and component
                         liquid_state_args[sv] = {}

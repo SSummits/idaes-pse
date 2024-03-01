@@ -255,7 +255,7 @@ class N2OAnalogy:
 
 
 class PressureSatSolvent:
-    # Method for calculating saturation pressure ofsolvents
+    # Method for calculating saturation pressure of solvents
     @staticmethod
     def build_parameters(cobj):
         cobj.pressure_sat_comp_coeff_1 = Var(
@@ -281,8 +281,6 @@ class PressureSatSolvent:
     @staticmethod
     def return_expression(b, cobj, T, dT=False):
         if dT:
-            # PYLINT-TODO
-            # pylint: disable-next=broad-exception-raised
             raise Exception("No dT method for pressure sat")
 
         return (
@@ -335,7 +333,7 @@ class VolMolSolvent:
 
 
 class VolMolCO2:
-    # Weiland Method for calculating molar volume of dissolved CO2 [2]
+    # Weiland Method for calculating molar volume of disolved CO2 [2]
 
     @staticmethod
     def build_parameters(cobj):
