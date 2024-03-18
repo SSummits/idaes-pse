@@ -2318,8 +2318,8 @@ class MEAColumnData(PackedColumnData):
         for c in liquid_holdup_constraints:
             getattr(blk, c).activate()
 
-        self.log_holdup_liq.unfix()
-        self.holdup_liq.unfix()
+        blk.log_holdup_liq.unfix()
+        blk.holdup_liq.unfix()
 
         # Same thing with holdup_liq
         for k in blk.log_holdup_liq_eqn:
