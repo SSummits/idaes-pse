@@ -370,16 +370,20 @@ and used when constructing these
             doc="Packing channel size",
         )
 
-        self.hydraulic_diameter = Var(
-            self.liquid_phase.length_domain,
-            initialize=4*0.97/250,
-            doc="hydraulic diameter")
+        # self.hydraulic_diameter = Var(
+        #     self.liquid_phase.length_domain,
+        #     initialize=4*0.97/250,
+        #     doc="hydraulic diameter")
         
-        @self.Constraint(
-            self.liquid_phase.length_domain,
-            doc="Hydraulic diameter eq")
-        def hydraulic_diameter_eq(blk, x):
-            return blk.hydraulic_diameter[x] == 4 * blk.eps_ref[x] / blk.packing_specific_area
+        # @self.Constraint(
+        #     self.liquid_phase.length_domain,
+        #     doc="Hydraulic diameter eq")
+        # def hydraulic_diameter_eq(blk, x):
+        #     return blk.hydraulic_diameter[x] == 4 * blk.eps_ref[x] / blk.packing_specific_area
+        @self.Expression(
+            self.liquid_phase.length_domain)
+        def hydraulic_diameter(blk, x):
+            return 4 * blk.eps_ref[x] / blk.packing_specific_area
 
         # TODO Change this to specific_interfacial_area
         self.area_interfacial = Var(
