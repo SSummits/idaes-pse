@@ -207,20 +207,26 @@ and used when constructing these
             domain=Reals, initialize=0.1, units=pyunits.m, doc="Column diameter"
         )
 
-        self.area_column = Var(
-            domain=Reals,
-            initialize=0.5,
-            units=pyunits.m**2,
-            doc="Column cross-sectional area",
-        )
-
         self.length_column = Var(
             domain=Reals, initialize=4.9, units=pyunits.m, doc="Column length"
         )
-
-        @self.Constraint(doc="Column cross-sectional area")
-        def column_cross_section_area_eqn(blk):
-            return blk.area_column == (Constants.pi * 0.25 * (blk.diameter_column) ** 2)
+        
+        use_var_area_column = False
+        if use_var_area_column:
+            self.area_column = Var(
+                domain=Reals,
+                initialize=0.5,
+                units=pyunits.m**2,
+                doc="Column cross-sectional area",
+            )
+            
+            @self.Constraint(doc="Column cross-sectional area")
+            def column_cross_section_area_eqn(blk):
+                return blk.area_column == (Constants.pi * 0.25 * (blk.diameter_column) ** 2)
+        else:
+            @self.Expression()
+            def area_column(blk):
+                return (Constants.pi * 0.25 * (blk.diameter_column) ** 2)
 
         # =====================================================================
         # Set argument values for vapor and liquid sides
@@ -350,6 +356,7 @@ and used when constructing these
         self.eps_ref = Var(
             self.liquid_phase.length_domain,
             initialize=0.97,
+            bounds=(0.2, 1),
             units=pyunits.dimensionless,
             # mutable=True,
             doc="Packing void space m3/m3",
