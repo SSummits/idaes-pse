@@ -1643,6 +1643,23 @@ class MEAColumnData(PackedColumnData):
                     blk.vapor_phase.heat[t, zf],
                     to_units=lunits("power") / lunits("length")) + blk.heat_util[t,zf]
         self.heat_transfer_eqn2.deactivate()
+        
+        # Scale heat transfer constraints
+        for (t, x), v in self.heat_transfer_with_utility_eqn1.items():
+            iscale.constraint_scaling_transform(
+                v,
+                iscale.get_scaling_factor(
+                    self.vapor_phase.heat[t, x], default=1, warning=True
+                ),
+            )
+
+        for (t, x), v in self.heat_transfer_with_utility_eqn2.items():
+            iscale.constraint_scaling_transform(
+                v,
+                iscale.get_scaling_factor(
+                    self.liquid_phase.heat[t, x], default=1, warning=True
+                ),
+            )
     
     
     def activate_internal_HE(self, mode):
