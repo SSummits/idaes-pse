@@ -55,7 +55,7 @@ from idaes.models_extra.column_models.solvent_column import PackedColumnData
 
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core import declare_process_block_class
-from idaes.core.util.exceptions import InitializationError
+from idaes.core.util.exceptions import InitializationError, ConfigurationError
 from idaes.core.solvers.get_solver import get_solver
 import idaes.logger as idaeslog
 
@@ -639,8 +639,8 @@ class MEAColumnData(PackedColumnData):
         # Interfacial Area model ([m2/m3]):
         # Reference: Tsai correlation,regressed by Chinen et al. 2018
 
-        @self.Expression()
-        def wetted_perimeter(blk):
+        @self.Expression(self.liquid_phase.length_domain)
+        def wetted_perimeter(blk, x):
             return blk.area_column * blk.packing_specific_area / blk.eps_ref[x]
 
         # Original value with weird fractional power units was 0.6486
@@ -717,7 +717,7 @@ class MEAColumnData(PackedColumnData):
                     / lunits("acceleration")
                 )
                 log_cross_sectional_area = log(blk.area_column / lunits("area"))
-                log_wetted_perimeter = log(blk.wetted_perimeter / lunits("length"))
+                log_wetted_perimeter = log(blk.wetted_perimeter[x] / lunits("length"))
                 return blk.log_area_interfacial[t, x] == (
                     log_packing_specific_area
                     + blk.log_area_interfacial_parA
