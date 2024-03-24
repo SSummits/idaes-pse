@@ -598,6 +598,7 @@ class MEAColumnData(PackedColumnData):
             self.liquid_phase.length_domain,
             bounds=(None, 100),
             initialize=-4.6,
+            units=pyunits.dimensionless,
             doc="""Logarithm of liquid velocity""",
         )
 
@@ -784,6 +785,7 @@ class MEAColumnData(PackedColumnData):
         self.log_holdup_parA = Var(
             bounds=(None, 100),
             initialize=3.1875915348284343,
+            units=pyunits.dimensionless,
             doc="Logarithm of liquid holdup model param A",
         )
 
@@ -1411,8 +1413,12 @@ class MEAColumnData(PackedColumnData):
         print('Here we go again')
         from pyomo.environ import (Binary, Integers,)
         
+        lunits = (
+            self.config.liquid_phase.property_package.get_metadata().get_derived_units
+        )
+        
         self.eps_ref_base = Param(initialize=0.97,
-                             units=None,
+                             units=pyunits.dimensionless,
                              doc="Packing void space m3/m3")
         
         # Embedded Heat Exchanger placement parameters
