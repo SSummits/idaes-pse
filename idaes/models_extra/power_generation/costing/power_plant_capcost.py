@@ -783,7 +783,7 @@ class QGESSCostingData(FlowsheetCostingBlockData):
                     "BEC_units"
                 ]
                 reference_costs_init[account] = (
-                    costing_params[str(tech)][ccs][account]["BEC"] * 1e-3
+                    costing_params[str(tech)][ccs][account]["BEC"] * 1e-6
                 )
 
                 if isinstance(process_params[account], list):
