@@ -2425,9 +2425,9 @@ class MEAColumnData(PackedColumnData):
             for k in eqn:
                 calculate_variable_from_constraint(var[k], eqn[k])
 
-        calculate_variable_from_constraint(
-            blk.area_column, blk.column_cross_section_area_eqn
-        )
+        # calculate_variable_from_constraint(
+        #     blk.area_column, blk.column_cross_section_area_eqn
+        # )
 
         # ---------------------------------------------------------------------
         init_log.info("Step 2: Steady-State isothermal mass balance")
