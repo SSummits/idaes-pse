@@ -1473,7 +1473,7 @@ class MEAColumnData(PackedColumnData):
         
         self.U = Var(initialize=35, # XXX: 32.5 - 34.9 (Miramontes and Tsouris 2020)
                      domain=NonNegativeReals,
-                     units=pyunits.J/ pyunits.s * pyunits.m**2 * pyunits.K,
+                     units=pyunits.J/ (pyunits.s * pyunits.m**2 * pyunits.K),
                      doc='Heat Transfer Coefficient')
         self.U.fix()
         if mode == 'stripper':
@@ -1542,7 +1542,7 @@ class MEAColumnData(PackedColumnData):
             self.vapor_phase.length_domain,
             doc="Heat exchanged to liquid phase (W/m)")
         def heat_util(blk, t, x):
-            return blk.N[x] * blk.U * blk.specific_area_util[x] * blk.CV_Volume[x] * (blk.T_util[t,x] - blk.liquid_phase.properties[t,x].temperature)
+            return blk.N[x] * blk.U * blk.specific_area_util[x] * blk.area_column * (blk.T_util[t,x] - blk.liquid_phase.properties[t,x].temperature)
         
         # ======================================================================
         # Logic Constraints for HE packing placement
