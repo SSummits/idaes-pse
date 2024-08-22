@@ -1508,7 +1508,7 @@ class MEAColumnData(PackedColumnData):
         self.eps_util = Var(self.liquid_phase.length_domain,
                           initialize=0.0,
                           domain=NonNegativeReals,
-                          bounds=(0.0,0.6),
+                          bounds=(0.0,0.13),
                           units=pyunits.m**3 / pyunits.m**3,
                           doc='Void fraction of cooling water channels',)
         self.eps_util.fix()
@@ -1516,7 +1516,8 @@ class MEAColumnData(PackedColumnData):
         @self.Constraint(self.liquid_phase.length_domain,
             doc='Constraint linking the diameter of cooling water tube with specific surfacea area')
         def specific_area_util_con(blk, x):
-            return blk.specific_area_util[x] * blk.diameter_util_tube * 0.25 == blk.eps_util[x]
+            return blk.specific_area_util[x] == (blk.eps_util[x]/blk.eps_util[x].ub) * (1-blk.eps_util[x]) * blk.packing_specific_area
+            # return blk.specific_area_util[x] * blk.diameter_util_tube * 0.25 == blk.eps_util[x]
         
         # TODO: Figure out a better way to implement penalty
         @self.Constraint(
