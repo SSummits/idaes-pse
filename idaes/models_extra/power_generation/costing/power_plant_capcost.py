@@ -222,14 +222,15 @@ class QGESSCostingData(FlowsheetCostingBlockData):
         if total_plant_cost is None:
             self.get_total_TPC(CE_index_year)
         else:
-            self.total_TPC = Var(
-                initialize=100,
-                bounds=(0,10000),
-                units=CE_index_units
-            )
-            @self.Constraint()
-            def total_TPC_eq(b):
-                return b.total_TPC == total_plant_cost
+            if not hasattr(self, "total_TPC"):
+                self.total_TPC = Var(
+                    initialize=100,
+                    bounds=(0,10000),
+                    units=CE_index_units
+                )
+                @self.Constraint()
+                def total_TPC_eq(b):
+                    return b.total_TPC == total_plant_cost
 
         if fixed_OM is True:
             self.get_fixed_OM_costs(
