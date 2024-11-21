@@ -362,13 +362,14 @@ and used when constructing these
             doc="Packing void space m3/m3",
         )
         self.eps_ref.fix()
-
-        self.packing_specific_area = Param(
+        
+        self.packing_specific_area = Var(
             initialize=250,
             units=lunits("length") ** 2 / lunits("length") ** 3,
-            mutable=True,
+            # mutable=True,
             doc="Packing specific surface area",
         )
+        self.packing_specific_area.fix()
 
         self.packing_channel_size = Param(
             initialize=0.1,
