@@ -1501,7 +1501,7 @@ class MEAColumnData(PackedColumnData):
         self.specific_area_util = Var(self.liquid_phase.length_domain,
                                     initialize=200,
                                     domain=NonNegativeReals,
-                                    bounds=(0,240),
+                                    bounds=(0,300),
                                     units=pyunits.m**2 / pyunits.m**3,
                                     doc='Specific surface area of cooling water tube')
         
@@ -1516,6 +1516,7 @@ class MEAColumnData(PackedColumnData):
         @self.Constraint(self.liquid_phase.length_domain,
             doc='Constraint linking the diameter of cooling water tube with specific surfacea area')
         def specific_area_util_con(blk, x):
+            # return blk.specific_area_util[x] == (blk.eps_ref[x]/blk.eps_ref_base) * blk.packing_specific_area
             return blk.specific_area_util[x] == (blk.eps_util[x]/blk.eps_util[x].ub) * (1-blk.eps_util[x]) * blk.packing_specific_area
             # return blk.specific_area_util[x] * blk.diameter_util_tube * 0.25 == blk.eps_util[x]
         
