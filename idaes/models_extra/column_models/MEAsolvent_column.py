@@ -7,8 +7,12 @@
 # Solutions of Sandia, LLC, Carnegie Mellon University, West Virginia University
 # Research Corporation, et al.  All rights reserved.
 #
-# Please see the files COPYRIGHT.md and LICENSE.md for full copyright and
-# license information.
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
+# University of California, through Lawrence Berkeley National Laboratory,
+# National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
+# University, West Virginia University Research Corporation, et al.
+# All rights reserved.  Please see the files COPYRIGHT.md and LICENSE.md
+# for full copyright and license information.
 #################################################################################
 """
 Packed Solvent Column Model for MEA systems
@@ -1436,18 +1440,83 @@ class MEAColumnData(PackedColumnData):
                 x_vap = self.vapor_phase.length_domain.next(x_liq)
                 sf_flow_mol = gsf(self.liquid_phase.properties[t, x_liq].flow_mol)
 
-                cst(self.velocity_liq_eqn[t, x_liq], sf_flow_mol)
-                # Decent initial guess for liquid velocity
-                sf_v = iscale.get_scaling_factor(
-                    self.velocity_liq[t, x_liq], default=0.016, warning=False
-                )
-                ssf(self.log_velocity_liq[t, x_liq], 1)
-                cst(self.log_velocity_liq_eqn[t, x_liq], sf_v)
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
+                    "Liq", "MEACOO_-"
+                ],
+                10,
+            )
 
-                sf_A_interfacial = iscale.get_scaling_factor(
-                    self.area_interfacial[t, x_vap],
-                    default=1 / value(self.packing_specific_area),
-                    warning=False,
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
+                    "Liq", "MEA_+"
+                ],
+                10,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
+                    "Liq", "MEA"
+                ],
+                1,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
+                    "Liq", "H2O"
+                ],
+                1,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
+                    "Liq", "CO2"
+                ],
+                100,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
+                    "Liq", "H2O"
+                ],
+                1e-3,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
+                    "Liq", "MEA"
+                ],
+                0.1,
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].log_k_eq["carbamate"], 1
+            )
+
+            iscale.set_scaling_factor(
+                blk.liquid_phase.properties[0, x].log_k_eq["bicarbonate"], 1
+            )
+
+        for v in blk.vapor_phase.properties.values():
+            iscale.constraint_scaling_transform(
+                v.total_flow_balance,
+                iscale.get_scaling_factor(v.flow_mol, default=1, warning=True),
+            )
+
+        for v in blk.liquid_phase.properties.values():
+            for p, j in v.appr_to_true_species.keys():
+                iscale.constraint_scaling_transform(
+                    v.appr_to_true_species[p, j],
+                    iscale.get_scaling_factor(
+                        v.flow_mol_phase_comp_true[p, j], default=1, warning=True
+                    ),
+                )
+            for p, j in v.true_mole_frac_constraint.keys():
+                iscale.constraint_scaling_transform(
+                    v.true_mole_frac_constraint[p, j],
+                    iscale.get_scaling_factor(
+                        v.flow_mol_phase_comp_true[p, j], default=1, warning=True
+                    ),
                 )
                 # In the (common) case where it didn't have anything set, set the default value
                 ssf(self.area_interfacial[t, x_vap], sf_A_interfacial)
