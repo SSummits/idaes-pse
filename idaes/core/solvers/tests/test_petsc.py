@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -13,6 +13,7 @@
 
 """Basic unit tests for PETSc solver utilities"""
 import pytest
+import re
 import numpy as np
 import json
 import os
@@ -753,9 +754,11 @@ def test_mixed_derivative_exception():
 
     with pytest.raises(
         NotImplementedError,
-        match="IDAES presently does not support PETSc for second order or higher derivatives like d2T_dtdx "
-        "that are differentiated at least once with respect to time. Please reformulate your model so "
-        "it does not contain such a derivative \(such as by introducing intermediate variables\)\.",
+        match=re.escape(
+            "IDAES presently does not support PETSc for second order or higher derivatives like d2T_dtdx "
+            "that are differentiated at least once with respect to time. Please reformulate your model so "
+            "it does not contain such a derivative (such as by introducing intermediate variables)."
+        ),
     ):
         petsc.petsc_dae_by_time_element(
             m,

@@ -4,6 +4,7 @@ dynamically created through the `declare_process_block_class()` decorator.
 
 See #1159 for more information.
 """
+
 from dataclasses import dataclass
 import sys
 import functools
@@ -187,7 +188,10 @@ def disable_attr_checks_on_slots(node: astroid.ClassDef):
     # overrides the "strict" semantics of having __slots__ defined
     # NOTE to be extra defensive, we should probably make sure that there are
     # no __slots__ defined throughout the complete class hierarchy as well
-    del node.locals["__slots__"]
+    try:
+        del node.locals["__slots__"]
+    except KeyError as e:
+        pass
 
 
 def has_conditional_instantiation(node: astroid.ClassDef, context=None):
