@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -261,7 +261,7 @@ class _ReactionBlock(ReactionBlockBase):
                  * 5 = Final initialization status and exceptions
                  * 6 = No output
             optarg : solver options dictionary object (default=None)
-            solver : str indicating which solver to use during
+            solver : str indicating whcih solver to use during
                      initialization (default = "ipopt")
         Returns:
             None

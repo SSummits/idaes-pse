@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -513,7 +513,7 @@ see property package for documentation.}""",
                      * 0 = no output (default)
                      * 1 = return solver state for each step in routine
                      * 2 = return solver state for each step in subroutines
-                     * 3 = include solver output information (tee=True)
+                     * 3 = include solver output infomation (tee=True)
 
             optarg : solver options dictionary object (default=None, use
                      default solver options)
@@ -535,8 +535,6 @@ see property package for documentation.}""",
 
         # expecting 2 DOF due to pressure driven constraint
         if degrees_of_freedom(blk) != 2:
-            # PYLINT-TODO
-            # pylint: disable-next=broad-exception-raised
             raise Exception(degrees_of_freedom(blk))
 
         blk.flash.initialize(

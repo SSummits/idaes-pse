@@ -43,7 +43,6 @@ Contents
      - How-To Guides
          | :doc:`Setting up IDAES Models <how_to_guides/workflow/index>`
          | :doc:`Developing Custom Models <how_to_guides/custom_models/general_model_development>`
-         | :doc:`Using the Data Management Framework <how_to_guides/data_management_framework/index>`
          | :doc:`Installing Specific IDAES Versions <how_to_guides/versioned_idaes_install>`
    * - Explanations
          | :doc:`Why IDAES <explanations/why_idaes>`
@@ -60,14 +59,14 @@ Contents
      - Reference Guides
          | :doc:`IDAES Model Libraries <reference_guides/model_libraries/index>`
          | :doc:`IDAES Core <reference_guides/core/index>`
-         | :doc:`Model Scaling Toolbox <reference_guides/scaling>`
+         | :doc:`Model Scaling Toolbox <reference_guides/scaling/scaling>`
          | :doc:`Initializing Models <reference_guides/initialization/index>`
          | :doc:`Command-line tools <reference_guides/commands/index>`
          | :doc:`Configuration <reference_guides/configuration>`
          | :doc:`Logging Processing & Outputs <reference_guides/logging>`
          | :doc:`Developing for IDAES <reference_guides/developer/index>`
          | :doc:`Grid integration application <reference_guides/apps/grid_integration/index>`
-         | :external+ui:doc:`Flowsheet Visualizer <fv>`
+         | `Flowsheet Visualizer <https://idaes-ui.readthedocs.io/en/latest/user/fv/>`_
 
 .. toctree::
     :hidden:

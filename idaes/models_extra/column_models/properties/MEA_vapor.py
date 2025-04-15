@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -339,7 +339,7 @@ class Viscosity:
         # Viscosity parameters are required for thermal conductivity, and
         # have likely already been built by the time this is triggered
         # for viscosity.
-        # To avoid implicit replacement, check to see if parameters already
+        # To avoid implict replacement, check to see if parameters already
         # exist
         if hasattr(pobj, "visc_d_h2o_coeff_1"):
             return None

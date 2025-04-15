@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -27,7 +27,7 @@ The main config arguments:
     - has radiation: True if model is used as a reheater or superheater unit
         Gas emissivity calculated (Gas temperature above 700 K)
 
-General assumptions:
+General assumtpions:
     - SI units (consistent with prop pack)
     - heat transfer calc U = f(Nu, Re, Pr)
     - Pressure drop tube and shell side (friction factor calc.)
@@ -289,6 +289,7 @@ class BoilerHeatExchangerData(HeatExchangerData):
         if self.config.has_holdup is True:
             add_object_reference(self, "volume_cold_side", self.cold_side.volume)
             add_object_reference(self, "volume_hot_side", self.hot_side.volume)
+
             # Total tube side valume
             def volume_cold_side_eqn(b):
                 return b.volume_cold_side == (
@@ -656,11 +657,11 @@ class BoilerHeatExchangerData(HeatExchangerData):
                     == b.gas_gray_fraction[t] * b.gas_emissivity[t]
                 )
 
-            # equivalent convective heat transfer coefficient due to radiation
+            # equivalent convective heat transfer coefficent due to radiation
             @self.Constraint(
                 self.flowsheet().time,
                 doc="Equivalent convective heat transfer "
-                "coefficient due to radiation",
+                "coefficent due to radiation",
             )
             def hconv_shell_rad_eqn(b, t):
                 return b.hconv_shell_rad[t] == c.stefan_constant * b.frad_gas_shell[
@@ -880,8 +881,6 @@ class BoilerHeatExchangerData(HeatExchangerData):
                 initialize=1.0, doc="Staggered tube arrangement factor"
             )
         else:
-            # PYLINT-TODO
-            # pylint: disable-next=broad-exception-raised
             raise Exception("tube arrangement type not supported")
         # Velocity on shell side
         self.v_shell = Var(
@@ -972,8 +971,6 @@ class BoilerHeatExchangerData(HeatExchangerData):
                     )
 
             else:
-                # PYLINT-TODO
-                # pylint: disable-next=broad-exception-raised
                 raise Exception("tube arrangement type not supported")
 
             # Pressure drop on shell side

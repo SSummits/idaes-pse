@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -276,7 +276,7 @@ def add_overall_performance_expressions(m):
 
     # Calculate the overall efficiency of the plant.
     @m.fs_main.Expression(
-        m.fs_main.time, doc="Overall efficiency based on gross power (%)"
+        m.fs_main.time, doc="Overall efficency based on gross power (%)"
     )
     def plant_gross_efficiency(b, t):
         return -b.fs_stc.turb.power[t] / (
@@ -285,7 +285,7 @@ def add_overall_performance_expressions(m):
             * b.fs_blr.aBoiler.hhv_coal_dry
         )
 
-    # Calculate total auxiliary power based on a surrogate expression
+    # Calculate total auxillary power based on a surrogate expression
     @m.fs_main.Expression(m.fs_main.time)
     def aux_power(b, t):
         steam_f = m.fs_main.fs_stc.turb.inlet_split.mixed_state[t].flow_mass * 7.937
@@ -589,9 +589,9 @@ def main_dynamic():
     m_dyn.fs_main.turbine_master_ctrl.mv_ref.value = (
         m_ss.fs_main.fs_stc.turb.throttle_valve[1].valve_opening[t0].value
     )
-    m_dyn.fs_main.turbine_master_ctrl.setpoint[
-        :
-    ].value = m_ss.fs_main.fs_stc.power_output[t0].value
+    m_dyn.fs_main.turbine_master_ctrl.setpoint[:].value = (
+        m_ss.fs_main.fs_stc.power_output[t0].value
+    )
     m_dyn.fs_main.boiler_master_ctrl.mv_ref.value = (
         m_ss.fs_main.fs_blr.aBoiler.flowrate_coal_raw[t0].value
     )
@@ -1873,7 +1873,7 @@ def run_dynamic(m, x0, t0, pd, solver):
 
 
 def plot_results(pd):
-    # plotting responses
+    # ploting responses
     plt.figure(1)
     plt.plot(pd["time"], pd["coal_flow"])
     plt.grid()
@@ -2212,16 +2212,16 @@ def print_pfd_results(m):
     tag_formats = {}
     for i, s in sd.items():
         tags[i + "_Fmass"] = s.flow_mass
-        tag_formats[i + "_Fmass"] = (
-            lambda x: "{:.1f} kg/s" if x >= 10 else "{:.2f} kg/s"
+        tag_formats[i + "_Fmass"] = lambda x: (
+            "{:.1f} kg/s" if x >= 10 else "{:.2f} kg/s"
         )
         tags[i + "_F"] = s.flow_mol
         tag_formats[i + "_F"] = "{:,.0f} mol/s"
         tags[i + "_T"] = s.temperature
         tag_formats[i + "_T"] = "{:,.0f} K"
         tags[i + "_P_kPa"] = s.pressure / 1000
-        tag_formats[i + "_P_kPa"] = (
-            lambda x: "{:,.0f} kPa" if x >= 100 else "{:.2f} kPa"
+        tag_formats[i + "_P_kPa"] = lambda x: (
+            "{:,.0f} kPa" if x >= 100 else "{:.2f} kPa"
         )
         tags[i + "_P"] = s.pressure / 1000
         tag_formats[i + "_P"] = "{:,.0f} Pa"

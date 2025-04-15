@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -509,7 +509,7 @@ def set_arcs_and_constraints(m):
             == b.condenser_hotwell.aux_condensate_state[t].pressure * 1e-4
         )
 
-    # Constraint to set the mixed state pressure equal to the pressure of
+    # Constrait to set the mixed state pressure equal to the pressure of
     # auxiliary condenser
     @fs.condenser_hotwell.Constraint(fs.time)
     def mixer_pressure_constraint(b, t):
@@ -519,7 +519,7 @@ def set_arcs_and_constraints(m):
         )
 
     # Constraint to set deaerator tank outlet enthalpy equal to
-    # saturation enthalpy at inlet - 100 (slightly sub-cooled)
+    # saturation enthalpy at inlet - 100 (sligtly sub-cooled)
     # This constraint determines the steam extraction flow rate and
     # is very important to avoid flash of deaerator tank when load is
     # ramping down, which will causes convergence issue if the flash happens
@@ -830,7 +830,7 @@ def set_inputs(m):
     fs.bfp.efficiency_isentropic.fix(0.8)
     fs.bfp.outlet.pressure.fix(1.45e7)
 
-    # Set input for spliter for main steam attemperator spray
+    # Set input for splitter for main steam attemperator spray
     fs.split_attemp.split_fraction[:, "Spray"].fix(0.0007)
 
     # Set inputs for water spray control valve
@@ -845,7 +845,7 @@ def set_inputs(m):
     fs.fwh5.desuperheat.overall_heat_transfer_coefficient.fix(145)
     fs.fwh5.cooling.overall_heat_transfer_coefficient.fix(675)
     fs.fwh5.condense.tube.deltaP[:].fix(0)
-    # Inputs required for dynamic model
+    # Inputs reqired for dynamic model
     fs.fwh5.condense.level.fix(0.275)
     fs.fwh5.condense.heater_diameter.fix(1.4)
     fs.fwh5.condense.vol_frac_shell.fix(0.675)
@@ -1666,7 +1666,7 @@ def initialize(m):
 
         # Since the constraint to calculate flow rate based on valve opening
         # and pressure drop is based on the square of flow rate and opening,
-        # negative a valve opening is mathematically valid.  Set valve openings
+        # negative a valve opening is mathmatically valid.  Set valve openings
         # to physically valid positive numbers
         valve_open = fs.fwh2_valve.valve_opening[0].value
         if valve_open < 0:
@@ -1681,7 +1681,7 @@ def initialize(m):
         if valve_open < 0:
             fs.fwh6_valve.valve_opening[:].value = -valve_open
 
-        _log.info("Adding heat transfer coefficient correations...")
+        _log.info("Adding heat transfer coefficent correations...")
         _add_heat_transfer_correlation(fs)
 
     else:
@@ -1706,14 +1706,14 @@ def initialize(m):
 
 
 def _add_u_eq(blk, uex=0.8):
-    """Add heat transfer coefficient adjustment for feed water flow rate.
-    This is based on knowing the heat transfer coefficient at a particular flow
-    and assuming the heat transfer coefficient is porportial to feed water
+    """Add heat transfer coefficent adjustment for feed water flow rate.
+    This is based on knowing the heat transfer coefficent at a particular flow
+    and assuming the heat transfer coefficent is porportial to feed water
     flow rate raised to certain power (typically 0.8)
 
     Args:
         blk: Heat exchanger block to add correlation to
-        uex: Correlation parameter value (default 0.8)
+        uex: Correlation parameter value (defalut 0.8)
 
     Returns:
         None

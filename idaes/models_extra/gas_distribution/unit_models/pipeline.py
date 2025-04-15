@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -31,7 +31,7 @@ from pyomo.core.base.param import Param
 from pyomo.core.base.units_container import units as pyunits
 from pyomo.core.base.reference import Reference
 from pyomo.dae.diffvar import DerivativeVar
-from pyomo.core.expr import log10
+from pyomo.core.expr.current import log10
 from pyomo.core.expr.numvalue import value as pyo_value
 
 from idaes.core import (

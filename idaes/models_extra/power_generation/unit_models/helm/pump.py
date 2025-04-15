@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -54,11 +54,11 @@ class HelmPumpData(BalanceBlockData):
     Basic isentropic 0D turbine model.  This inherits the heater block to get
     a lot of unit model boilerplate and the mass balance, enegy balance and
     pressure equations.  This model is intended to be used only with Helmholtz
-    EOS property packages in mixed or single phase mode with P-H state vars.
+    EOS property pacakges in mixed or single phase mode with P-H state vars.
 
     Since this inherits BalanceBlockData, and only operates in steady-state or
     pseudo-steady-state (for dynamic models) the following mass, energy and
-    pressure equations are implicitly written.
+    pressure equations are implicitly writen.
 
     1) Mass Balance:
         0 = flow_mol_in[t] - flow_mol_out[t]
@@ -111,7 +111,7 @@ class HelmPumpData(BalanceBlockData):
             doc="Ratio of outlet to inlet pressure",
         )
 
-        # Some shorter references to property blocks
+        # Some shorter refernces to property blocks
         properties_in = self.control_volume.properties_in
         properties_out = self.control_volume.properties_out
 
@@ -139,7 +139,7 @@ class HelmPumpData(BalanceBlockData):
     ):
         """
         For simplicity this initialization requires you to set values for the
-        efficiency, inlet, and one of pressure ratio, pressure change or outlet
+        efficency, inlet, and one of pressure ratio, pressure change or outlet
         pressure.
         """
         solve_log = idaeslog.getSolveLogger(self.name, outlvl, tag="unit")
@@ -148,7 +148,7 @@ class HelmPumpData(BalanceBlockData):
         slvr = get_solver(solver, optarg)
 
         # Store original specification so initialization doesn't change the model
-        # This will only restore the values of variables that were originally fixed
+        # This will only resore the values of varaibles that were originally fixed
         sp = StoreSpec.value_isfixed_isactive(only_fixed=True)
         istate = to_json(self, return_dict=True, wts=sp)
         # Check for alternate pressure specs
@@ -162,7 +162,7 @@ class HelmPumpData(BalanceBlockData):
                     (self.control_volume.deltaP[t] + self.inlet.pressure[t])
                     / self.inlet.pressure[t]
                 )
-        # Fix the variables we base the initializtion on and free the rest.
+        # Fix the variables we base the initialization on and free the rest.
         # This requires good values to be provided for pressure, efficiency,
         # and inlet conditions, but it is simple and reliable.
         self.inlet.fix()

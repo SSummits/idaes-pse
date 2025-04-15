@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -37,7 +37,7 @@ from pyomo.environ import (
 )
 from pyomo.dae import DerivativeVar
 from pyomo.common.config import ConfigBlock, ConfigValue, In, Bool
-from pyomo.core.expr import Expr_if
+from pyomo.core.expr.current import Expr_if
 
 # Import IDAES cores
 from idaes.core import (
@@ -367,7 +367,7 @@ constructed,
         def pitch(b):
             return b.fin_length + b.radius_outer * 2.0
 
-        # Equivalent tube length (not necessarily equal to height)
+        # Equivalent tube length (not neccesarily equal to height)
         @self.Constraint(doc="Equivalent length of tube")
         def tube_length_eqn(b):
             return b.tube_length * b.pitch * b.number_tubes == b.projected_area
@@ -429,11 +429,7 @@ constructed,
         def volume_eqn(b, t):
             return (
                 b.volume[t]
-                == 0.25
-                * const.pi
-                * b.tube_diameter**2
-                * b.tube_length
-                * b.number_tubes
+                == 0.25 * const.pi * b.tube_diameter**2 * b.tube_length * b.number_tubes
             )
 
     def _make_performance(self):
@@ -792,7 +788,7 @@ constructed,
             )
 
         # Equation to calculate tube boundary wall temperature
-        @self.Constraint(self.flowsheet().time, doc="tube boundary wall temperature")
+        @self.Constraint(self.flowsheet().time, doc="tube bounary wall temperature")
         def temperature_tube_boundary_eqn(b, t):
             return b.heat_flux_conv[
                 t

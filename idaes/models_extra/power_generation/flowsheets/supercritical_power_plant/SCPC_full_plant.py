@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -105,7 +105,7 @@ def main():
     # pylint: disable-next=import-outside-toplevel
     import idaes.models_extra.power_generation.flowsheets.supercritical_power_plant.boiler_subflowsheet_build as blr
 
-    # import the models (ECON, WW, PrSH, PlSH, FSH, Spliter, Mixer, Reheater)
+    # import the models (ECON, WW, PrSH, PlSH, FSH, Splitter, Mixer, Reheater)
     # see boiler_subflowhseet_build.py for a better description
     blr.build_boiler(m.fs)
     # initialize boiler network models (one by one)
@@ -138,7 +138,7 @@ def main():
     m.fs.turb.constraint_reheat_temp.deactivate()
     m.fs.turb.inlet_split.inlet.enth_mol.unfix()
     m.fs.turb.inlet_split.inlet.pressure.unfix()
-    # user can fix the boiler feed water pump pressure (uncommenting next line)
+    # user can fix the boiler feed water pump pressure (uncomenting next line)
     #    m.fs.bfp.outlet.pressure[:].fix(26922222.222))
 
     m.fs.FHWtoECON = Arc(

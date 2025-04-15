@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -42,7 +42,7 @@ def load_BB_costing_dictionary():
     (DOE/NETL-2019/1784). Specifically it includes scaling exponents,
     valid ranges for the scaled parameter, and units for those ranges.
     It is important to note the units only apply to the ranges and are
-    not necessarily the units that the reference parameter value will
+    not neccessarily the units that the reference parameter value will
     be given in.. It includes the total plant cost (TPC), reference
     parameter value, and units for that value.
 

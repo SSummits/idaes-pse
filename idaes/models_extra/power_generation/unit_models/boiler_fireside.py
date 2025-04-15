@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -524,7 +524,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             initialize=0.2, doc="Mass fraction of Ash on dry basis"
         )
 
-        # High heating value of dry coal, usually as a fixed user input
+        # High heating value of dry coal, usally as a fixed user input
         self.hhv_coal_dry = Var(
             initialize=1e7, doc="High heating value (HHV)" "of coal on dry basis J/kg"
         )
@@ -1018,7 +1018,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             return b.flowrate_daf_flyash[t] + b.flowrate_ash[t]
 
     def _make_momentum_balance(self):
-        # flue gas pressure is secondary air presure
+        # flue gas pressure is secondary air pressure
         # - pressure drop through windbox
         # and burner secondary air register
         @self.Constraint(self.flowsheet().time, doc="Flue gas pressure in Pascals")
@@ -1037,7 +1037,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             )
 
     def _make_energy_balance(self):
-        # temperature of primary_air_moist is equal to coal temperature
+        # temperature of primary_air_moist is equal to coal temparature
         # leaving mill, ignore the temperature of primary_air_inlet in energy
         # balance equation
         @self.Constraint(
@@ -1201,7 +1201,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             dof = degrees_of_freedom(blk)
 
         if not dof == 0:
-            raise ConfigurationError("User needs to check degrees of freedom")
+            raise ConfigurationError("User needs to check " "degrees of freedom")
 
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
             res = opt.solve(blk, tee=slc.tee)

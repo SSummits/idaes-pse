@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -205,7 +205,7 @@ class HelmTurbineOutletStageData(HelmIsentropicTurbineData):
         super().initialize_build(outlvl=outlvl, solver=solver, optarg=optarg)
         self.control_volume.properties_out[:].pressure.fix()
 
-        # Free eff_isen and activate special constraints
+        # Free eff_isen and activate special constarints
         self.efficiency_isentropic.unfix()
         self.outlet.pressure.fix()
         if calculate_cf:
@@ -239,7 +239,7 @@ class HelmTurbineOutletStageData(HelmIsentropicTurbineData):
             cf = value(self.flow_coeff)
         from_json(self, sd=istate, wts=sp)
         if calculate_cf:
-            # cf was probably fixed, so will have to set the value again here
+            # cf was probably fixed, so will have to set the value agian here
             # if you ask for it to be calculated.
             self.flow_coeff = cf
 

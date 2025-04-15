@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -113,6 +113,7 @@ def main():
 
 
 def build_boiler(fs):
+
     # Add property packages to flowsheet library
     fs.prop_fluegas = FlueGasParameterBlock()
 
@@ -464,6 +465,7 @@ def initialize(m):
 
 
 def unfix_inlets(m):
+
     # Use FG molar composition to set component flow rates (baseline report)
     m.fs.ECON.hot_side_inlet.flow_mol_comp[0, "H2O"].unfix()
     m.fs.ECON.hot_side_inlet.flow_mol_comp[0, "CO2"].unfix()
@@ -660,8 +662,7 @@ def print_results(m):
     )
     print("heat transfer area = ", value(m.fs.PrSH.area_heat_transfer))
     print(
-        "overall heat transfer = ",
-        value(m.fs.PrSH.overall_heat_transfer_coefficient[0]),
+        "overal heat transfer = ", value(m.fs.PrSH.overall_heat_transfer_coefficient[0])
     )
 
     print("\n\n ------------- Economizer   ---------")

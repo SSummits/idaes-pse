@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -444,13 +444,13 @@ class _GasPhaseStateBlock(StateBlock):
             hold_state : flag indicating whether the initialization routine
                          should unfix any state variables fixed during
                          initialization (default=False).
-                         - True - states variables are not unfixed, and
+                         - True - states varaibles are not unfixed, and
                                  a dict of returned containing flags for
                                  which states were fixed during
                                  initialization.
                         - False - state variables are unfixed after
                                  initialization by calling the
-                                 release_state method
+                                 relase_state method
         Returns:
             If hold_states is True, returns a dict containing flags for
             which states were fixed during initialization.
@@ -473,8 +473,6 @@ class _GasPhaseStateBlock(StateBlock):
             # Check when the state vars are fixed already result in dof 0
             for k in blk.values():
                 if degrees_of_freedom(k) != 0:
-                    # PYLINT-TODO
-                    # pylint: disable-next=broad-exception-raised
                     raise Exception(
                         "State vars fixed but degrees of freedom "
                         "for state block is not zero during "
@@ -560,7 +558,7 @@ class _GasPhaseStateBlock(StateBlock):
 
     def release_state(blk, flags, outlvl=0):
         """
-        Method to release state variables fixed during initialization.
+        Method to relase state variables fixed during initialization.
         Keyword Arguments:
             flags : dict containing information of which state variables
                     were fixed during initialization, and should now be
@@ -675,9 +673,7 @@ class GasPhaseStateBlockData(StateBlockData):
         def ideal_gas(b):
             pressure = pyunits.convert(b.pressure, to_units=pyunits.Pa)
             temperature = pyunits.convert(b.temperature, to_units=pyunits.K)
-            dens_mol = pyunits.convert(
-                b.dens_mol, to_units=pyunits.mol / pyunits.m**3
-            )
+            dens_mol = pyunits.convert(b.dens_mol, to_units=pyunits.mol / pyunits.m**3)
             gas_constant = pyunits.convert(
                 Constants.gas_constant, to_units=pyunits.J / pyunits.mol / pyunits.K
             )

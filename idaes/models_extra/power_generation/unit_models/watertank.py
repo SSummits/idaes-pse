@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2023 by the software owners: The Regents of the
+# Copyright (c) 2018-2024 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -291,7 +291,7 @@ see property package for documentation.}""",
             self.flowsheet().time, initialize=1.0, doc="Water level from in the tank"
         )
 
-        # Auxiliary expressions for volume
+        # Auxiliar expressions for volume
         # Rectangular tank
         if self.config.tank_type == "rectangular_tank":
             # Calculation of cross-sectional area of the rectangle
@@ -382,7 +382,7 @@ see property package for documentation.}""",
                      * 0 = no output (default)
                      * 1 = return solver state for each step in routine
                      * 2 = return solver state for each step in subroutines
-                     * 3 = include solver output information (tee=True)
+                     * 3 = include solver output infomation (tee=True)
 
             optarg : solver options dictionary object (default=None, use
                      default solver options)
