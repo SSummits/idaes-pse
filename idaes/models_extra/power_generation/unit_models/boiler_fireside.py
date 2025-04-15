@@ -524,7 +524,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             initialize=0.2, doc="Mass fraction of Ash on dry basis"
         )
 
-        # High heating value of dry coal, usually as a fixed user input
+        # High heating value of dry coal, usally as a fixed user input
         self.hhv_coal_dry = Var(
             initialize=1e7, doc="High heating value (HHV)" "of coal on dry basis J/kg"
         )
@@ -1037,7 +1037,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             )
 
     def _make_energy_balance(self):
-        # temperature of primary_air_moist is equal to coal temperature
+        # temperature of primary_air_moist is equal to coal temparature
         # leaving mill, ignore the temperature of primary_air_inlet in energy
         # balance equation
         @self.Constraint(
@@ -1201,7 +1201,7 @@ ratio, PA to coal ratio, and lower stoichiometric ratio,
             dof = degrees_of_freedom(blk)
 
         if not dof == 0:
-            raise ConfigurationError("User needs to check degrees of freedom")
+            raise ConfigurationError("User needs to check " "degrees of freedom")
 
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
             res = opt.solve(blk, tee=slc.tee)

@@ -43,9 +43,6 @@ Expressions:
 
 __author__ = "Douglas Allan"
 
-
-from functools import partial
-
 from pyomo.common.config import ConfigValue, ConfigBlock
 import pyomo.environ as pyo
 
@@ -201,14 +198,14 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
                     self,
                     f"{port_name}_temperature_eqn",
                     pyo.Constraint(
-                        tset, rule=partial(rule_temperature, props=props, port=port)
+                        tset, rule=lambda blk, t: rule_temperature(blk, t, props, port)
                     ),
                 )
                 setattr(
                     self,
                     f"{port_name}_pressure_eqn",
                     pyo.Constraint(
-                        tset, rule=partial(rule_pressure, props=props, port=port)
+                        tset, rule=lambda blk, t: rule_pressure(blk, t, props, port)
                     ),
                 )
                 setattr(
@@ -217,7 +214,9 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
                     pyo.Constraint(
                         tset,
                         side_comps,
-                        rule=partial(rule_flow_mol_comp, props=props, port=port),
+                        rule=lambda blk, t, j: rule_flow_mol_comp(
+                            blk, t, j, props, port
+                        ),
                     ),
                 )
                 if direction == "in":
@@ -226,7 +225,9 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
                         f"{port_name}_mole_frac_eqn",
                         pyo.Constraint(
                             tset,
-                            rule=partial(rule_mole_frac, port=port, comps=side_comps),
+                            rule=lambda blk, t: rule_mole_frac(
+                                blk, t, port, side_comps
+                            ),
                         ),
                     )
                 if direction == "out":
@@ -236,7 +237,7 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
                         pyo.Constraint(
                             tset,
                             absent_comp_list,
-                            rule=partial(rule_absent_comp, props=props),
+                            rule=lambda blk, t, j: rule_absent_comp(blk, t, j, props),
                         ),
                     )
                 # Add a different port at the module level
@@ -253,20 +254,6 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
             return b.solid_oxide_cell.electrical_work[t] * b.number_cells
 
         self.potential_cell = pyo.Reference(self.solid_oxide_cell.potential)
-
-        self.total_current = pyo.Var(
-            tset,
-            units=pyo.units.ampere,
-            doc="Total current through module",
-            initialize=0,
-        )
-
-        @self.Constraint(tset)
-        def total_current_eqn(b, t):
-            return (
-                b.total_current[t]
-                == b.solid_oxide_cell.total_current[t] * b.number_cells
-            )
 
     def initialize_build(
         self,
@@ -401,11 +388,6 @@ class SolidOxideModuleSimpleData(UnitModelBlockData):
                             cst(absent_comp_eqn[t, j], sflow * sx)
 
         self.solid_oxide_cell.recursive_scaling()
-        for t in self.flowsheet().time:
-            sf_tot_current = gsf(self.solid_oxide_cell.total_current[t])
-            ssf(self.total_current[t], sf_tot_current * s_num_cells)
-            sf_tot_current = gsf(self.total_current[t])
-            cst(self.total_current_eqn[t], sf_tot_current)
 
     def model_check(self):
         pass

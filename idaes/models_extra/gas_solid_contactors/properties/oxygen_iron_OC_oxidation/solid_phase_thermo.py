@@ -354,18 +354,18 @@ class _SolidPhaseStateBlock(StateBlock):
                          flow_mass, temperature, and mass_frac_comp
             outlvl : sets output level of initialization routine
             optarg : solver options dictionary object (default=None)
-            solver : str indicating which solver to use during
+            solver : str indicating whcih solver to use during
                      initialization (default = "ipopt")
             hold_state : flag indicating whether the initialization routine
                          should unfix any state variables fixed during
                          initialization (default=False).
-                         - True - states variables are not unfixed, and
+                         - True - states varaibles are not unfixed, and
                                  a dict of returned containing flags for
                                  which states were fixed during
                                  initialization.
                         - False - state variables are unfixed after
                                  initialization by calling the
-                                 release_state method
+                                 relase_state method
         Returns:
             If hold_states is True, returns a dict containing flags for
             which states were fixed during initialization.
@@ -388,8 +388,6 @@ class _SolidPhaseStateBlock(StateBlock):
             # Check when the state vars are fixed already result in dof 0
             for k in blk.values():
                 if degrees_of_freedom(k) != 0:
-                    # PYLINT-TODO
-                    # pylint: disable-next=broad-exception-raised
                     raise Exception(
                         "State vars fixed but degrees of freedom "
                         "for state block is not zero during "
@@ -449,7 +447,7 @@ class _SolidPhaseStateBlock(StateBlock):
 
     def release_state(blk, flags, outlvl=0):
         """
-        Method to release state variables fixed during initialization.
+        Method to relase state variables fixed during initialization.
         Keyword Arguments:
             flags : dict containing information of which state variables
                     were fixed during initialization, and should now be

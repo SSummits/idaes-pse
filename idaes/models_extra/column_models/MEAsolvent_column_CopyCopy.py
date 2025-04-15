@@ -55,7 +55,7 @@ from idaes.models_extra.column_models.solvent_column import PackedColumnData
 
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core import declare_process_block_class
-from idaes.core.util.exceptions import InitializationError, ConfigurationError
+from idaes.core.util.exceptions import InitializationError
 from idaes.core.solvers.get_solver import get_solver
 import idaes.logger as idaeslog
 
@@ -69,18 +69,10 @@ from idaes.core.solvers.petsc import (
 )
 from idaes.core.initialization import BlockTriangularizationInitializer
 from idaes.core.util.initialization import _fix_vars, _restore_fixedness
-# from idaes.models_extra.column_models.enhancement_factor_model_pseudo_second_order import (
-#     make_enhancement_factor_model,
-#     initialize_enhancement_factor_model
-# )
-from idaes.models_extra.column_models.enhancement_factor_model_pseudo_second_order_explicit import (
+from idaes.models_extra.column_models.enhancement_factor_model import (
     make_enhancement_factor_model,
     initialize_enhancement_factor_model
 )
-# from idaes.models_extra.column_models.enhancement_factor_model_third_order import (
-#     make_enhancement_factor_model,
-#     initialize_enhancement_factor_model
-# )
 from idaes.core.surrogate.surrogate_block import SurrogateBlock
 __author__ = "Paul Akula, John Eslick, Anuja Deshpande, Andrew Lee, Douglas Allan"
 
@@ -141,7 +133,6 @@ class MEAColumnData(PackedColumnData):
             self.flowsheet().time,
             self.liquid_phase.length_domain,
             solute_comp_list,
-            bounds=(0, None),
             units=lunits("length") / lunits("time"),
             doc="Liquid phase mass transfer coefficient",
         )
@@ -222,7 +213,7 @@ class MEAColumnData(PackedColumnData):
 
     def build(self):
         super().build()
-        
+
         # ---------------------------------------------------------------------
         # Unit level sets
         vap_comp = self.config.vapor_phase.property_package.component_list
@@ -238,7 +229,6 @@ class MEAColumnData(PackedColumnData):
             self.config.liquid_phase.property_package.get_metadata().get_derived_units
         )
 
-        
         # Map from log variable of property to equation that defines it.
         self.log_property_var_eqn_map = ComponentMap()
         # Map from log variable of parameter (fixed var) to equation that defines it.
@@ -640,9 +630,9 @@ class MEAColumnData(PackedColumnData):
         # Interfacial Area model ([m2/m3]):
         # Reference: Tsai correlation,regressed by Chinen et al. 2018
 
-        @self.Expression(self.liquid_phase.length_domain)
-        def wetted_perimeter(blk, x):
-            return blk.area_column * blk.packing_specific_area / blk.eps_ref[x]
+        @self.Expression()
+        def wetted_perimeter(blk):
+            return blk.area_column * blk.packing_specific_area / blk.eps_ref
 
         # Original value with weird fractional power units was 0.6486
         # Corrected value was calculated by unlumping parameters to
@@ -718,7 +708,7 @@ class MEAColumnData(PackedColumnData):
                     / lunits("acceleration")
                 )
                 log_cross_sectional_area = log(blk.area_column / lunits("area"))
-                log_wetted_perimeter = log(blk.wetted_perimeter[x] / lunits("length"))
+                log_wetted_perimeter = log(blk.wetted_perimeter / lunits("length"))
                 return blk.log_area_interfacial[t, x] == (
                     log_packing_specific_area
                     + blk.log_area_interfacial_parA
@@ -920,7 +910,7 @@ class MEAColumnData(PackedColumnData):
                     blk.packing_specific_area
                     / (lunits("length") ** 2 / lunits("length") ** 3)
                 )
-                log_hydraulic_diameter = log(blk.hydraulic_diameter[x] / lunits("length"))
+                log_hydraulic_diameter = log(blk.hydraulic_diameter / lunits("length"))
                 return blk.log_mass_transfer_coeff_vap[t, x, j] == (
                     blk.log_Cv_ref
                     - log_R_gas
@@ -1000,7 +990,7 @@ class MEAColumnData(PackedColumnData):
             if x == blk.liquid_phase.length_domain.last():
                 return Constraint.Skip
             else:
-                log_hydraulic_diameter = log(blk.hydraulic_diameter[x] / lunits("length"))
+                log_hydraulic_diameter = log(blk.hydraulic_diameter / lunits("length"))
                 return blk.log_mass_transfer_coeff_liq[t, x, j] == (
                     blk.log_Cl_ref
                     + (1 / 6) * log(12)
@@ -1367,7 +1357,7 @@ class MEAColumnData(PackedColumnData):
                 )
                 return blk.log_gas_velocity_fld[t, x] == 0.5 * (
                     log_g
-                    + 3 * log(blk.eps_ref[x])
+                    + 3 * log(blk.eps_ref)
                     - log_packing_specific_area
                     + blk.log_dens_mass_liq[t, x_liq]
                     - blk.log_dens_mass_vap[t, x]
@@ -1398,288 +1388,6 @@ class MEAColumnData(PackedColumnData):
                     == blk.velocity_vap[t, x]
                 )
 
-    # =========================================================================
-    # Internal HE Sub-Model
-    def build_internal_HE_model(self, mode, steam_temp=423.15):
-        
-        if mode != "absorber" and mode != "stripper":
-            raise ConfigurationError('Invalid column mode for internal heat exchanger model')
-        
-        print('Here we go again')
-        from pyomo.environ import (Binary, Integers,)
-        
-        lunits = (
-            self.config.liquid_phase.property_package.get_metadata().get_derived_units
-        )
-        
-        self.eps_ref_base = Param(initialize=0.97,
-                             units=pyunits.dimensionless,
-                             doc="Packing void space m3/m3")
-        
-        # Embedded Heat Exchanger placement parameters
-        self.N_start = Var(
-            self.vapor_phase.length_domain,
-            initialize=0,
-            within=Binary,
-            doc="Heat exchanger precesence in element i")
-        self.N_start.fix()
-        
-        self.N = Var(
-            self.vapor_phase.length_domain,
-            initialize=0,
-            within=Binary,
-            doc="Heat exchanger precesence in element i")
-        self.N.fix()
-        
-        self.N_min = Param(
-            initialize = 5,
-            mutable = True,
-            doc = "Min CVs for Internal HE")
-        
-        self.HE_Penalty = Param(
-            initialize=0.4,
-            mutable=True,
-            doc="Penalty to void space and surface area due to HE prescence")
-        
-        self.d_HE = Var(
-            # self.vapor_phase.length_domain,
-            within=Integers,
-            bounds=(-1,1),
-            initialize=0,
-            doc="Specifies the direction of the coolant flow: 1 for down, -1 for up, 0 for no flow")
-        self.d_HE.fix()
-        
-        
-        # ======================================================================
-        # Embedded heat exchanger performance variables and contraints
-        self.T_util = Var(self.flowsheet().time,
-                       self.liquid_phase.length_domain,
-                       units=pyunits.K,
-                       domain=NonNegativeReals,
-                       # bounds=(303.15, 350),
-                       initialize=303.15,
-                       doc='Cooling water temperature')
-        self.T_util.fix()
-        if mode == "absorber":
-            self.T_util.setlb(303.15)
-            self.T_util.setub(313.15)
-        if mode == "stripper":
-            self.T_util.fix(steam_temp)
-        
-        self.U = Var(initialize=35, # XXX: 32.5 - 34.9 (Miramontes and Tsouris 2020)
-                     domain=NonNegativeReals,
-                     units=pyunits.J/ (pyunits.s * pyunits.m**2 * pyunits.K),
-                     doc='Heat Transfer Coefficient')
-        self.U.fix()
-        if mode == 'stripper':
-            self.U.fix(750)
-        
-        self.mcw = Var(self.liquid_phase.length_domain,
-                       initialize=50,
-                       domain=NonNegativeReals,
-                       units=pyunits.mol / pyunits.s, 
-                       doc='Cooling Water Flowrate')
-        self.mcw.fix()
-
-        self.cpcw = Var(initialize=75.40,
-                        domain=NonNegativeReals,
-                        units=pyunits.J / pyunits.mol * pyunits.K,
-                        doc='Specific heat of Cooling Water' )
-        self.cpcw.fix()
-        
-        self.diameter_util_tube = Var(initialize=0.02,
-                                    domain=NonNegativeReals,
-                                    units=pyunits.m,
-                                    doc='Diameter of cooling water cooling tubes')
-        self.diameter_util_tube.fix()
-        
-        self.specific_area_util = Var(self.liquid_phase.length_domain,
-                                    initialize=200,
-                                    domain=NonNegativeReals,
-                                    bounds=(0,300),
-                                    units=pyunits.m**2 / pyunits.m**3,
-                                    doc='Specific surface area of cooling water tube')
-        
-        self.eps_util = Var(self.liquid_phase.length_domain,
-                          initialize=0.0,
-                          domain=NonNegativeReals,
-                          bounds=(0.0,0.13),
-                          units=pyunits.m**3 / pyunits.m**3,
-                          doc='Void fraction of cooling water channels',)
-        self.eps_util.fix()
-        
-        @self.Constraint(self.liquid_phase.length_domain,
-            doc='Constraint linking the diameter of cooling water tube with specific surfacea area')
-        def specific_area_util_con(blk, x):
-            # return blk.specific_area_util[x] == (blk.eps_ref[x]/blk.eps_ref_base) * blk.packing_specific_area
-            return blk.specific_area_util[x] == (blk.eps_util[x]/blk.eps_util[x].ub) * (1-blk.eps_util[x]) * blk.packing_specific_area
-            # return blk.specific_area_util[x] * blk.diameter_util_tube * 0.25 == blk.eps_util[x]
-        
-        # TODO: Figure out a better way to implement penalty
-        @self.Constraint(
-            self.vapor_phase.length_domain,
-            doc="Void space penalty for HE")
-        def eps_ref_penalty(blk, x):
-            return blk.eps_ref[x] == blk.eps_ref_base - blk.eps_util[x]
-        
-        # @self.Constraint(
-        #     self.vapor_phase.length_domain,
-        #     doc="Constraint to include penalty for HE use")
-        # def HE_Area_Penalty(blk, i):
-        #     return blk.a_ref[i] == blk.a_ref_base #* (1 - blk.HE_Penalty * blk.N[i])
-        
-        @self.Expression(self.liquid_phase.length_domain)
-        def CV_Volume(blk, x):
-            diameter = blk.diameter_column
-            CV_length = blk.liquid_phase.length_domain.next(0) * blk.length_column
-            return 0.25 * 3.14159 * diameter**2 * CV_length
-        
-        @self.Expression(
-            self.flowsheet().time,
-            self.vapor_phase.length_domain,
-            doc="Heat exchanged to liquid phase (W/m)")
-        def heat_util(blk, t, x):
-            return blk.N[x] * blk.U * blk.specific_area_util[x] * blk.area_column * (blk.T_util[t,x] - blk.liquid_phase.properties[t,x].temperature)
-        
-        # ======================================================================
-        # Logic Constraints for HE packing placement
-        
-        self.L_min = Var(
-            initialize=0.0,
-            doc="Minimum length of internal heat exchanger")
-        self.L_min.fix()
-        
-        @self.Constraint(
-            self.vapor_phase.length_domain,
-            self.vapor_phase.length_domain,)
-        def HE_Con1(blk, x, y):
-            if x > y:
-                return Constraint.Skip
-            else:
-                return blk.N[y] >= blk.N_start[x]*(x+blk.L_min - y)
-            
-        @self.Constraint(
-            self.vapor_phase.length_domain)
-        def HE_Con2(blk, x):
-            if x == blk.vapor_phase.length_domain.first():
-                return blk.N_start[x] >= blk.N[x]
-            else:
-                xb = blk.vapor_phase.length_domain.prev(x)
-                return blk.N_start[x] >= blk.N[x] - blk.N[xb]
-        
-        # ======================================================================
-        # Cooling water temperature
-        
-        if mode == "absorber":
-            Cp_util = 4184
-            @self.Constraint(
-                self.flowsheet().time,
-                self.vapor_phase.length_domain,
-                doc="inequality for temperature at element i with previous element")
-            def CW_temp_con1(blk, t, x):
-                if x == self.vapor_phase.length_domain.first():
-                    return Constraint.Skip
-                else:
-                    zb = self.vapor_phase.length_domain.prev(x)
-                    return blk.T_util[t,x] >= (blk.T_util[t,zb] -(-blk.heat_util[t,zb])/(blk.mcw[zb]*blk.cpcw*250*0.6*0.333*0.04*15))\
-                            * blk.d_HE\
-                            * blk.N[x] * blk.N[zb] # XXX: Change later
-                        #blk.d_HE[x]*blk.d_HE[zb]
-                    # return blk.T_util[t,x] >= (blk.T_util[t,zb] -(blk.Q_to_vapor[t,zb] + blk.Q_to_liquid[t,zb])/(blk.mcw[zb]*Cp_util))*blk.d_HE[x]*blk.d_HE[zb]
-            # self.CW_temp_con1.deactivate()
-            
-            @self.Constraint(
-                self.flowsheet().time,
-                self.vapor_phase.length_domain,
-                doc="inequality for temperature at element i with next element")
-            def CW_temp_con2(blk, t, x):
-                if x == self.vapor_phase.length_domain.last():
-                    return Constraint.Skip
-                else:
-                    zn = self.vapor_phase.length_domain.next(x)
-                    return blk.T_util[t,x] >= (blk.T_util[t,zn] -(-blk.heat_util[t,zn])/(blk.mcw[zn]*blk.cpcw*250*0.6*0.333*0.04*15))\
-                            * -blk.d_HE\
-                            * blk.N[x] * blk.N[zn]
-                        #*blk.d_HE[x]*blk.d_HE[zn]
-                        
-        # Heat transfer
-        lunits = (
-            self.config.liquid_phase.property_package.get_metadata().get_derived_units
-        )
-        
-        @self.Constraint(
-            self.flowsheet().time,
-            self.vapor_phase.length_domain,
-            doc="Heat transfer calculation",
-        )
-        def heat_transfer_with_utility_eqn1(blk, t, x):
-            if x == self.vapor_phase.length_domain.first():
-                return Constraint.Skip
-            else:
-                zb = self.liquid_phase.length_domain.prev(x)
-                return pyunits.convert(
-                    blk.vapor_phase.heat[t, x],
-                    to_units=lunits("power") / lunits("length"),
-                ) == (
-                    blk.heat_transfer_coeff[t, x]
-                    * (
-                        blk.liquid_phase.properties[t, zb].temperature
-                        - pyunits.convert(
-                            blk.vapor_phase.properties[t, x].temperature,
-                            to_units=lunits("temperature"),
-                        )
-                    )
-                )
-        self.heat_transfer_eqn1.deactivate()
-
-        @self.Constraint(
-            self.flowsheet().time,
-            self.liquid_phase.length_domain,
-            doc="Heat transfer balance",
-        )
-        def heat_transfer_with_utility_eqn2(blk, t, x):
-            if x == self.liquid_phase.length_domain.last():
-                return Constraint.Skip
-            else:
-                zf = self.vapor_phase.length_domain.next(x)
-                return blk.liquid_phase.heat[t, x] == -pyunits.convert(
-                    blk.vapor_phase.heat[t, zf],
-                    to_units=lunits("power") / lunits("length")) + blk.heat_util[t,zf]
-        self.heat_transfer_eqn2.deactivate()
-        
-        # Scale heat transfer constraints
-        for (t, x), v in self.heat_transfer_with_utility_eqn1.items():
-            iscale.constraint_scaling_transform(
-                v,
-                iscale.get_scaling_factor(
-                    self.vapor_phase.heat[t, x], default=1, warning=True
-                ),
-            )
-
-        for (t, x), v in self.heat_transfer_with_utility_eqn2.items():
-            iscale.constraint_scaling_transform(
-                v,
-                iscale.get_scaling_factor(
-                    self.liquid_phase.heat[t, x], default=1, warning=True
-                ),
-            )
-    
-    
-    def activate_internal_HE(self, mode):
-        
-        if mode != "absorber" and mode != "stripper":
-            raise ConfigurationError('Invalid column mode for internal heat exchanger model')
-        
-        elif mode == "absorber":
-            self.eps_ref.unfix()
-            self.eps_util.unfix()
-        self.eps_ref.unfix()
-        self.eps_util.unfix()
-        self.N.unfix()
-        
-        self.N_start.unfix()
-    
-    
     # Scaling Routine
     def calculate_scaling_factors(self):
         super().calculate_scaling_factors()
@@ -2205,56 +1913,6 @@ class MEAColumnData(PackedColumnData):
                     log(enhancement_factor_values[i])
                 )
 
-     
-    def stripper_max_co2_capture_obj(self):
-        from pyomo.environ import maximize
-        @self.Objective(sense=maximize)
-        def max_co2_capture(blk):
-            vap_outlet_properties = blk.vapor_phase.properties[0,1]
-            return vap_outlet_properties.flow_mol * vap_outlet_properties.mole_frac_comp['CO2']
-        
-    def absorber_max_co2_capture_obj(self):
-        from pyomo.environ import maximize
-        @self.Objective()
-        def max_co2_capture(blk):
-            vap_out = blk.vapor_phase.properties[0,1]
-            return vap_out.flow_mol * vap_out.mole_frac_comp['CO2']
-        
-    def absorber_min_volume_obj(self):
-        @self.Objective()
-        def min_absorber_volume_obj(blk):
-            pi = 3.14159
-            return pi * blk.diameter_column**2 * blk.length_column
-    
-    def profiles_to_dataframe(self, Internal_HE=1):
-        import pandas as pd
-        
-        prof = pd.DataFrame()
-        for x in self.vapor_phase.length_domain:
-            # Internal Utility Results
-            if Internal_HE == 1:
-                prof.at[x, 'Internal HE placement'] = value(self.N[x])
-                prof.at[x, 'eps_util'] = value(self.eps_util[x])
-                prof.at[x, 'A_util (m2/m3)'] = value(self.specific_area_util[x])
-                prof.at[x, 'Util Temp'] = value(self.T_util[0,x])
-            
-            # Liquid Phase
-            prof.at[x, 'Liq Temp'] = value(self.liquid_phase.properties[0,x].temperature)
-            prof.at[x, 'Liq Flowrate true'] = value(self.liquid_phase.properties[0,x].flow_mol)
-            for j in self.config.liquid_phase.property_package.component_list:
-                prof.at[x, 'x_'+j] = value(self.liquid_phase.properties[0,x].mole_frac_phase_comp_true['Liq',j])
-            prof.at[x, 'Liq Flowrate appr'] = value(self.liquid_phase.properties[0,x].flow_mol_phase_apparent['Liq'])
-            for j in self.config.liquid_phase.property_package.apparent_species_set:
-                prof.at[x, 'x_'+j+',appr'] = value(self.liquid_phase.properties[0,x].mole_frac_phase_comp_apparent['Liq',j])
-                
-            # Vapor Phase
-            prof.at[x, 'Vap Temp'] = value(self.vapor_phase.properties[0,x].temperature)
-            prof.at[x, 'Vap Flowrate'] = value(self.vapor_phase.properties[0,x].flow_mol)
-            for j in self.config.vapor_phase.property_package.component_list:
-                prof.at[x, 'y_'+j] = value(self.vapor_phase.properties[0,x].mole_frac_phase_comp['Vap',j])
-                
-        return prof
-                
     # =========================================================================
     # Model initialization routine
     def initialize(
@@ -2608,13 +2266,6 @@ class MEAColumnData(PackedColumnData):
 
         # ---------------------------------------------------------------------
         init_log.info("Step 7: Interfacial area constraint")
-
-        blk.area_interfacial.unfix()
-        blk.log_area_interfacial.unfix()
-
-        blk.area_interfacial_eqn.activate()
-        blk.log_area_interfacial_eqn.activate()
-
         init_log.info(
             "Initializing interfacial area - degrees_of_freedom = {}".format(
                 degrees_of_freedom(blk)
@@ -2745,6 +2396,8 @@ class MEAColumnData(PackedColumnData):
             constraint.activate()
         for var in blk.enhancement_factor_vars:
             var.unfix()
+            
+        print("DoF before 11a = "+str(degrees_of_freedom(blk)))
 
         if blk.config.surrogate_enhancement_factor_model is None:
             initialize_enhancement_factor_model(
@@ -2785,11 +2438,9 @@ class MEAColumnData(PackedColumnData):
                         )
                     )
                         
-        
+        print("DoF after 11a = "+str(degrees_of_freedom(blk)))
 
-        init_log.info("Step 11b: Solve model with initialized enhancement factor - degrees_of_freedom = {}".format(
-            degrees_of_freedom(blk)
-        ))
+        init_log.info("Step 11b: Solve model with initialized enhancement factor")
 
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
             res = opt.solve(blk, tee=slc.tee, symbolic_solver_labels=True)

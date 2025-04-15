@@ -413,22 +413,22 @@ tube side flows from 1 to 0""",
         # tube inputs:
         if self.config.tube_inner_diameter is None:
             raise ConfigurationError(
-                "User must provide a value for tube_inner_diameter"
+                "User must provide a value for " "tube_inner_diameter"
             )
         if self.config.tube_thickness is None:
-            raise ConfigurationError("User must provide a value for tube_thickness")
+            raise ConfigurationError("User must provide a value for " "tube_thickness")
         # header inputs:
         if (
             self.config.has_header is False
             and self.config.header_inner_diameter is True
         ):
             _log.info_high(
-                "User set has_header to False and provided header_inner_diameter"
+                "User set has_header to False " "and provided header_inner_diameter"
             )
 
         if self.config.has_header and self.config.header_inner_diameter is None:
             raise ConfigurationError(
-                "If has_header is True, user must provide header_inner_diameter"
+                "If has_heder is True, user must " "provide header_inner_diameter"
             )
 
         if (
@@ -436,12 +436,12 @@ tube side flows from 1 to 0""",
             and self.config.header_wall_thickness is True
         ):
             _log.info_high(
-                "User set has_header to False and provided header_wall_thickness"
+                "User set has_header to False " "and provided header_wall_thickness"
             )
 
         if self.config.has_header and self.config.header_wall_thickness is None:
             raise ConfigurationError(
-                "If has_header is True, user must provide header_wall_thickness"
+                "If has_heder is True, user must " "provide header_wall_thickness"
             )
 
         self._make_geometry()
@@ -1212,7 +1212,7 @@ tube side flows from 1 to 0""",
                     == b.gas_gray_fraction[t, x] * b.gas_emissivity[t, x]
                 )
 
-            # equivalent convective heat transfer coefficient due to radiation
+            # equivalent convective heat transfer coefficent due to radiation
             @self.Constraint(
                 self.flowsheet().time,
                 self.shell.length_domain,
@@ -1432,8 +1432,6 @@ tube side flows from 1 to 0""",
                 initialize=1.0, doc="Staggered Tube Arrangement Factor"
             )
         else:
-            # PYLINT-TODO
-            # pylint: disable-next=broad-exception-raised
             raise Exception("Tube Arrangement Not Supported")
 
         # Velocity on shell side
@@ -1542,8 +1540,6 @@ tube side flows from 1 to 0""",
                 )
 
         else:
-            # PYLINT-TODO
-            # pylint: disable-next=broad-exception-raised
             raise Exception("Tube Arrangement Not Supported")
 
         # Pressure drop on shell side
@@ -2914,7 +2910,7 @@ tube side flows from 1 to 0""",
 
         # ---------------------------------------------------------------------
         # total heat released by shell side fluid assuming even discretization.
-        # shell side always in forward direction and the first point is skipped
+        # shell side always in forward direction and the first point is skiped
 
         @self.Expression(
             self.flowsheet().time, doc="Total Heat Released from Shell Side"
@@ -2961,7 +2957,7 @@ tube side flows from 1 to 0""",
                      * 0 = no output (default)
                      * 1 = return solver state for each step in routine
                      * 2 = return solver state for each step in subroutines
-                     * 3 = include solver output information (tee=True)
+                     * 3 = include solver output infomation (tee=True)
 
             optarg : solver options dictionary object (default=None, use
                      default solver options)

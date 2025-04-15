@@ -182,12 +182,11 @@ def _interpolate_2D(
         phi_bound_1: expression for the value of the quantity to be interpolated
             at the 1 bound
         derivative: If True estimate derivative
+        method: interpolation method currently only CDS is supported
 
     Returns:
         expression for phi at face
     """
-    # TODO add tests to ensure this function works as designed
-    # Also, user beware, use of CV_Bound enums is untested
     icu = ic - 1
     icd = ic
     if ic == ifaces.first():
@@ -204,7 +203,7 @@ def _interpolate_2D(
     if not derivative:
         cf = faces.at(ic)
         lambf = (cd - cf) / (cd - cu)
-        return (1 - lambf) * phi_func(icd) + lambf * phi_func(icu)
+        return (1 - lambf) * phi_func(icu) + lambf * phi_func(icd)
     else:
         # Since we are doing linear interpolation derivative is the slope
         # between node centers even if they are not evenly spaced
@@ -602,7 +601,7 @@ _diatomic_gas_standard_state = ["F", "Cl", "H", "N", "O"]
 def _comp_int_energy_expr(temperature, comp):
     # ideal gas internal energy
     # NIST has 298.15 K as a reference state, so adjust internal energy expression for that
-    T_ref = 298.15 * pyo.units.K
+    T_ref = 298.15
     dn_form = 1
     for element, molecule_dict in _element_dict.items():
         if element in _monotomic_gas_standard_state:

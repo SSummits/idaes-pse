@@ -145,7 +145,7 @@ def make_enhancement_factor_model(blk, lunits):
             return Constraint.Skip
         else:
             return exp(b.log_conc_CO2_bulk[t, x]) == b.conc_CO2_bulk[t, x]
-
+    
     @blk.Constraint(
         blk.flowsheet().time,
         blk.liquid_phase.length_domain,
@@ -164,18 +164,19 @@ def make_enhancement_factor_model(blk, lunits):
                 (
                     b.vapor_phase.properties[t, zf].mole_frac_comp["CO2"]
                     * Pressure
-                    / b.psi[t, zf]
+                    / (b.psi[t, zf] + 1e-6)
                     + b.liquid_phase.properties[t, x].conc_mol_phase_comp_true[
                         "Liq", "CO2"
                     ]
                 ) / lunits("density_mole")
             ) == b.liquid_phase.properties[t, x].log_conc_mol_phase_comp_true[
-                       "Liq", "CO2"
-                   ] + log(
+                        "Liq", "CO2"
+                    ] + log(
                 b.liquid_phase.properties[t, x].henry["Liq", "CO2"]
                 / b.psi[t, zf]
                 + 1
             )
+            
             # return (
             #     b.conc_CO2_bulk[t, x] * (
             #         b.vapor_phase.properties[t, zf].mole_frac_comp["CO2"]
@@ -190,6 +191,25 @@ def make_enhancement_factor_model(blk, lunits):
             #         + 1
             #     )
             # )
+        
+            # return 2 * b.log_conc_CO2_bulk[t, x] == log((
+            #     (b.liquid_phase.properties[t, x].conc_mol_phase_comp_true["Liq", "CO2"]
+            #     * (
+            #         b.liquid_phase.properties[t, x].henry["Liq", "CO2"]
+            #         / b.psi[t, zf]
+            #         + 1
+            #     ) / (
+            #         b.vapor_phase.properties[t, zf].mole_frac_comp["CO2"]
+            #         * Pressure
+            #         / b.psi[t, zf]
+            #         + b.liquid_phase.properties[t, x].conc_mol_phase_comp_true["Liq", "CO2"]
+            #     )
+            #     ))**2)
+            
+            # return 2 * b.log_conc_CO2_bulk[t, x] == log((
+            #     (b.vapor_phase.properties[t, zf].mole_frac_comp["CO2"] + (b.psi[t, zf] * b.liquid_phase.properties[t, x].conc_mol_phase_comp_true["Liq", "CO2"] / Pressure)) /
+            #     (1 + (b.psi[t, zf] / b.liquid_phase.properties[t, x].henry["Liq", "CO2"]))
+            #     )**2)
 
     @blk.Expression(
         blk.flowsheet().time,
@@ -471,9 +491,14 @@ def initialize_enhancement_factor_model(
             if x == blk.liquid_phase.length_domain.last():
                 continue
             zf = blk.liquid_phase.length_domain.next(x)
-            calculate_variable_from_constraint(
+            try:
+                calculate_variable_from_constraint(
                 blk.log_conc_CO2_bulk[t, x], blk.conc_CO2_bulk_eqn[t, x]
-            )
+                )
+            except:
+                calculate_variable_from_constraint(
+                blk.conc_CO2_bulk[t, x], blk.conc_CO2_bulk_eqn[t, x]
+                )
             calculate_variable_from_constraint(
                 blk.conc_CO2_bulk[t, x], blk.log_conc_CO2_bulk_eqn[t, x]
             )
@@ -519,9 +544,18 @@ def initialize_enhancement_factor_model(
     _sub_problem_scaling_suffix(blk, tmp_blk)
     flags = _fix_vars([var for var in tmp_blk.input_vars.values()])
     assert degrees_of_freedom(tmp_blk) == 0
+    print(degrees_of_freedom(tmp_blk))
     with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
         res = solver_obj.solve(tmp_blk, tee=slc.tee, symbolic_solver_labels=True)
     assert_optimal_termination(res)
+    
+    # if not check_optimal_termination(res):
+    #     # with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
+    #     #     res = solver_obj.solve(tmp_blk, tee=True, symbolic_solver_labels=True)
+    #     solver_obj.options['tol'] = 1e-4
+    #     res = solver_obj.solve(tmp_blk, tee=True)
+    #     assert_optimal_termination(res)
+    
     # if not check_optimal_termination(res):
     #     # IPOPT's solve failed, so let's try a sketchy iterative solution instead
     #     for t in blk.flowsheet().time:
