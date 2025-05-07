@@ -1470,6 +1470,8 @@ class MEAColumnData(PackedColumnData):
             self.T_util.setub(313.15)
         if mode == "stripper":
             self.T_util.fix(steam_temp)
+            self.T_util.setlb(273.15+135)
+            self.T_util.setub(273.15+200)
         
         self.U = Var(initialize=35, # XXX: 32.5 - 34.9 (Miramontes and Tsouris 2020)
                      domain=NonNegativeReals,
