@@ -1522,7 +1522,7 @@ class MEAColumnData(PackedColumnData):
         
         # TODO: Figure out a better way to implement penalty
         @self.Constraint(
-            self.vapor_phase.length_domain,
+            self.liquid_phase.length_domain,
             doc="Void space penalty for HE")
         def eps_ref_penalty(blk, x):
             return blk.eps_ref[x] == blk.eps_ref_base - blk.eps_util[x]
@@ -1541,10 +1541,21 @@ class MEAColumnData(PackedColumnData):
         
         @self.Expression(
             self.flowsheet().time,
-            self.vapor_phase.length_domain,
+            self.liquid_phase.length_domain,
             doc="Heat exchanged to liquid phase (W/m)")
         def heat_util(blk, t, x):
             return blk.N[x] * blk.U * blk.specific_area_util[x] * blk.area_column * (blk.T_util[t,x] - blk.liquid_phase.properties[t,x].temperature)
+        
+        @self.Expression(
+            self.flowsheet().time,
+        )
+        def heat_util_total(blk, t):
+            heat_util_per_m_total = 0
+            delta_x = blk.liquid_phase.length_domain.next(0)
+            for x in blk.liquid_phase.length_domain:
+                if x != blk.liquid_phase.length_domain.first():
+                    heat_util_per_m_total += blk.heat_util[t,x] * delta_x
+            return heat_util_per_m_total * blk.length_column
         
         # ======================================================================
         # Logic Constraints for HE packing placement
