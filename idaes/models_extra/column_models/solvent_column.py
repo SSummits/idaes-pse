@@ -3,7 +3,7 @@
 # Framework (IDAES IP) was produced under the DOE Institute for the
 # Design of Advanced Energy Systems (IDAES).
 #
-# Copyright (c) 2018-2024 by the software owners: The Regents of the
+# Copyright (c) 2018-2023 by the software owners: The Regents of the
 # University of California, through Lawrence Berkeley National Laboratory,
 # National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
 # University, West Virginia University Research Corporation, et al.
@@ -296,24 +296,23 @@ and used when constructing these
             property_package=self.config.liquid_phase.property_package,
             property_package_args=self.config.liquid_phase.property_package_args,
         )
-        
 
         self.liquid_phase.add_geometry(
             flow_direction=set_direction_liquid,
             length_domain_set=self.config.length_domain_set,
             length_var=self.length_column,
         )
-        
+
         self.liquid_phase.add_state_blocks(
             information_flow=set_direction_liquid, has_phase_equilibrium=False
         )
-        
+
         self.liquid_phase.add_material_balances(
             balance_type=MaterialBalanceType.componentTotal,
             has_phase_equilibrium=False,
             has_mass_transfer=True,
         )
-        
+
         self.liquid_phase.add_energy_balances(
             balance_type=EnergyBalanceType.enthalpyTotal,
             has_heat_transfer=True,
@@ -321,7 +320,7 @@ and used when constructing these
         )
 
         self.liquid_phase.apply_transformation()
-        
+
         # Add Ports for vapor side
         self.add_inlet_port(name="vapor_inlet", block=self.vapor_phase)
         self.add_outlet_port(name="vapor_outlet", block=self.vapor_phase)
@@ -394,17 +393,6 @@ and used when constructing these
         def hydraulic_diameter(blk, x):
             return 4 * blk.eps_ref[x] / blk.packing_specific_area
 
-        # self.hydraulic_diameter = Var(
-        #     self.liquid_phase.length_domain,
-        #     initialize=4*0.97/250,
-        #     doc="hydraulic diameter")
-        
-        # @self.Constraint(
-        #     self.liquid_phase.length_domain,
-        #     doc="Hydraulic diameter eq")
-        # def hydraulic_diameter_eq(blk, x):
-        #     return blk.hydraulic_diameter[x] == 1e-6 + 4 * blk.eps_ref[x] / blk.packing_specific_area
-        
         # TODO Change this to specific_interfacial_area
         self.area_interfacial = Var(
             self.flowsheet().time,
@@ -603,11 +591,6 @@ and used when constructing these
             units=lunits("power") / lunits("temperature") / lunits("length"),
             doc="Vapor-liquid heat transfer coefficient multiplied by heat transfer area per unit column length",
         )
-        
-        self.cust_ht_term = Var(
-            self.liquid_phase.length_domain,
-            ['Vap','Liq'])
-        self.cust_ht_term.fix(0)
 
         # Heat transfer
         @self.Constraint(
@@ -632,7 +615,7 @@ and used when constructing these
                             to_units=lunits("temperature"),
                         )
                     )
-                ) +blk.cust_ht_term[x,'Vap']
+                )
 
         @self.Constraint(
             self.flowsheet().time,
@@ -647,7 +630,7 @@ and used when constructing these
                 return blk.liquid_phase.heat[t, x] == -pyunits.convert(
                     blk.vapor_phase.heat[t, zf],
                     to_units=lunits("power") / lunits("length"),
-                ) +blk.cust_ht_term[x,'Liq']
+                )
 
         @self.Constraint(
             self.flowsheet().time,

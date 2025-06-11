@@ -23,6 +23,7 @@ from pyomo.environ import (
     PositiveReals,
     Reals,
     RangeSet,
+    PositiveReals,
     units as pyunits,
     Var,
 )

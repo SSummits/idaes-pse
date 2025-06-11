@@ -544,18 +544,9 @@ def initialize_enhancement_factor_model(
     _sub_problem_scaling_suffix(blk, tmp_blk)
     flags = _fix_vars([var for var in tmp_blk.input_vars.values()])
     assert degrees_of_freedom(tmp_blk) == 0
-    print(degrees_of_freedom(tmp_blk))
     with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
         res = solver_obj.solve(tmp_blk, tee=slc.tee, symbolic_solver_labels=True)
     assert_optimal_termination(res)
-    
-    # if not check_optimal_termination(res):
-    #     # with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
-    #     #     res = solver_obj.solve(tmp_blk, tee=True, symbolic_solver_labels=True)
-    #     solver_obj.options['tol'] = 1e-4
-    #     res = solver_obj.solve(tmp_blk, tee=True)
-    #     assert_optimal_termination(res)
-    
     # if not check_optimal_termination(res):
     #     # IPOPT's solve failed, so let's try a sketchy iterative solution instead
     #     for t in blk.flowsheet().time:

@@ -7,12 +7,8 @@
 # Solutions of Sandia, LLC, Carnegie Mellon University, West Virginia University
 # Research Corporation, et al.  All rights reserved.
 #
-# Copyright (c) 2018-2024 by the software owners: The Regents of the
-# University of California, through Lawrence Berkeley National Laboratory,
-# National Technology & Engineering Solutions of Sandia, LLC, Carnegie Mellon
-# University, West Virginia University Research Corporation, et al.
-# All rights reserved.  Please see the files COPYRIGHT.md and LICENSE.md
-# for full copyright and license information.
+# Please see the files COPYRIGHT.md and LICENSE.md for full copyright and
+# license information.
 #################################################################################
 """
 Packed Solvent Column Model for MEA systems
@@ -226,7 +222,7 @@ class MEAColumnData(PackedColumnData):
 
     def build(self):
         super().build()
-        
+
         # ---------------------------------------------------------------------
         # Unit level sets
         vap_comp = self.config.vapor_phase.property_package.component_list
@@ -242,7 +238,6 @@ class MEAColumnData(PackedColumnData):
             self.config.liquid_phase.property_package.get_metadata().get_derived_units
         )
 
-        
         # Map from log variable of property to equation that defines it.
         self.log_property_var_eqn_map = ComponentMap()
         # Map from log variable of parameter (fixed var) to equation that defines it.
@@ -603,6 +598,7 @@ class MEAColumnData(PackedColumnData):
             self.liquid_phase.length_domain,
             bounds=(None, 100),
             initialize=-4.6,
+            units=pyunits.dimensionless,
             doc="""Logarithm of liquid velocity""",
         )
 
@@ -789,6 +785,7 @@ class MEAColumnData(PackedColumnData):
         self.log_holdup_parA = Var(
             bounds=(None, 100),
             initialize=3.1875915348284343,
+            units=pyunits.dimensionless,
             doc="Logarithm of liquid holdup model param A",
         )
 
@@ -1156,7 +1153,11 @@ class MEAColumnData(PackedColumnData):
 
 
         if self.config.surrogate_enhancement_factor_model is None:
-            self.enhancement_factor_vars, self.enhancement_factor_constraints = make_enhancement_factor_model(self, lunits)
+            self.enhancement_factor_vars, self.enhancement_factor_constraints = make_enhancement_factor_model(
+                self,
+                lunits,
+                kinetics="Luo"
+            )
         else:
             self.CO2_loading = Var(
                 self.flowsheet().time,
@@ -1469,6 +1470,8 @@ class MEAColumnData(PackedColumnData):
             self.T_util.setub(313.15)
         if mode == "stripper":
             self.T_util.fix(steam_temp)
+            self.T_util.setlb(273.15+135)
+            self.T_util.setub(273.15+200)
         
         self.U = Var(initialize=35, # XXX: 32.5 - 34.9 (Miramontes and Tsouris 2020)
                      domain=NonNegativeReals,
@@ -1521,7 +1524,7 @@ class MEAColumnData(PackedColumnData):
         
         # TODO: Figure out a better way to implement penalty
         @self.Constraint(
-            self.vapor_phase.length_domain,
+            self.liquid_phase.length_domain,
             doc="Void space penalty for HE")
         def eps_ref_penalty(blk, x):
             return blk.eps_ref[x] == blk.eps_ref_base - blk.eps_util[x]
@@ -1540,10 +1543,21 @@ class MEAColumnData(PackedColumnData):
         
         @self.Expression(
             self.flowsheet().time,
-            self.vapor_phase.length_domain,
+            self.liquid_phase.length_domain,
             doc="Heat exchanged to liquid phase (W/m)")
         def heat_util(blk, t, x):
             return blk.N[x] * blk.U * blk.specific_area_util[x] * blk.area_column * (blk.T_util[t,x] - blk.liquid_phase.properties[t,x].temperature)
+        
+        @self.Expression(
+            self.flowsheet().time,
+        )
+        def heat_util_total(blk, t):
+            heat_util_per_m_total = 0
+            delta_x = blk.liquid_phase.length_domain.next(0)
+            for x in blk.liquid_phase.length_domain:
+                if x != blk.liquid_phase.length_domain.first():
+                    heat_util_per_m_total += blk.heat_util[t,x] * delta_x
+            return heat_util_per_m_total * blk.length_column
         
         # ======================================================================
         # Logic Constraints for HE packing placement
@@ -1711,83 +1725,18 @@ class MEAColumnData(PackedColumnData):
                 x_vap = self.vapor_phase.length_domain.next(x_liq)
                 sf_flow_mol = gsf(self.liquid_phase.properties[t, x_liq].flow_mol)
 
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
-                    "Liq", "MEACOO_-"
-                ],
-                10,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
-                    "Liq", "MEA_+"
-                ],
-                10,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
-                    "Liq", "MEA"
-                ],
-                1,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].mole_frac_phase_comp_true[
-                    "Liq", "H2O"
-                ],
-                1,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
-                    "Liq", "CO2"
-                ],
-                100,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
-                    "Liq", "H2O"
-                ],
-                1e-3,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].flow_mol_phase_comp_true[
-                    "Liq", "MEA"
-                ],
-                0.1,
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].log_k_eq["carbamate"], 1
-            )
-
-            iscale.set_scaling_factor(
-                blk.liquid_phase.properties[0, x].log_k_eq["bicarbonate"], 1
-            )
-
-        for v in blk.vapor_phase.properties.values():
-            iscale.constraint_scaling_transform(
-                v.total_flow_balance,
-                iscale.get_scaling_factor(v.flow_mol, default=1, warning=True),
-            )
-
-        for v in blk.liquid_phase.properties.values():
-            for p, j in v.appr_to_true_species.keys():
-                iscale.constraint_scaling_transform(
-                    v.appr_to_true_species[p, j],
-                    iscale.get_scaling_factor(
-                        v.flow_mol_phase_comp_true[p, j], default=1, warning=True
-                    ),
+                cst(self.velocity_liq_eqn[t, x_liq], sf_flow_mol)
+                # Decent initial guess for liquid velocity
+                sf_v = iscale.get_scaling_factor(
+                    self.velocity_liq[t, x_liq], default=0.016, warning=False
                 )
-            for p, j in v.true_mole_frac_constraint.keys():
-                iscale.constraint_scaling_transform(
-                    v.true_mole_frac_constraint[p, j],
-                    iscale.get_scaling_factor(
-                        v.flow_mol_phase_comp_true[p, j], default=1, warning=True
-                    ),
+                ssf(self.log_velocity_liq[t, x_liq], 1)
+                cst(self.log_velocity_liq_eqn[t, x_liq], sf_v)
+
+                sf_A_interfacial = iscale.get_scaling_factor(
+                    self.area_interfacial[t, x_vap],
+                    default=1 / value(self.packing_specific_area),
+                    warning=False,
                 )
                 # In the (common) case where it didn't have anything set, set the default value
                 ssf(self.area_interfacial[t, x_vap], sf_A_interfacial)
@@ -2274,56 +2223,6 @@ class MEAColumnData(PackedColumnData):
                     log(enhancement_factor_values[i])
                 )
 
-     
-    def stripper_max_co2_capture_obj(self):
-        from pyomo.environ import maximize
-        @self.Objective(sense=maximize)
-        def max_co2_capture(blk):
-            vap_outlet_properties = blk.vapor_phase.properties[0,1]
-            return vap_outlet_properties.flow_mol * vap_outlet_properties.mole_frac_comp['CO2']
-        
-    def absorber_max_co2_capture_obj(self):
-        from pyomo.environ import maximize
-        @self.Objective()
-        def max_co2_capture(blk):
-            vap_out = blk.vapor_phase.properties[0,1]
-            return vap_out.flow_mol * vap_out.mole_frac_comp['CO2']
-        
-    def absorber_min_volume_obj(self):
-        @self.Objective()
-        def min_absorber_volume_obj(blk):
-            pi = 3.14159
-            return pi * blk.diameter_column**2 * blk.length_column
-    
-    def profiles_to_dataframe(self, Internal_HE=1):
-        import pandas as pd
-        
-        prof = pd.DataFrame()
-        for x in self.vapor_phase.length_domain:
-            # Internal Utility Results
-            if Internal_HE == 1:
-                prof.at[x, 'Internal HE placement'] = value(self.N[x])
-                prof.at[x, 'eps_util'] = value(self.eps_util[x])
-                prof.at[x, 'A_util (m2/m3)'] = value(self.specific_area_util[x])
-                prof.at[x, 'Util Temp'] = value(self.T_util[0,x])
-            
-            # Liquid Phase
-            prof.at[x, 'Liq Temp'] = value(self.liquid_phase.properties[0,x].temperature)
-            prof.at[x, 'Liq Flowrate true'] = value(self.liquid_phase.properties[0,x].flow_mol)
-            for j in self.config.liquid_phase.property_package.component_list:
-                prof.at[x, 'x_'+j] = value(self.liquid_phase.properties[0,x].mole_frac_phase_comp_true['Liq',j])
-            prof.at[x, 'Liq Flowrate appr'] = value(self.liquid_phase.properties[0,x].flow_mol_phase_apparent['Liq'])
-            for j in self.config.liquid_phase.property_package.apparent_species_set:
-                prof.at[x, 'x_'+j+',appr'] = value(self.liquid_phase.properties[0,x].mole_frac_phase_comp_apparent['Liq',j])
-                
-            # Vapor Phase
-            prof.at[x, 'Vap Temp'] = value(self.vapor_phase.properties[0,x].temperature)
-            prof.at[x, 'Vap Flowrate'] = value(self.vapor_phase.properties[0,x].flow_mol)
-            for j in self.config.vapor_phase.property_package.component_list:
-                prof.at[x, 'y_'+j] = value(self.vapor_phase.properties[0,x].mole_frac_phase_comp['Vap',j])
-                
-        return prof
-                
     # =========================================================================
     # Model initialization routine
     def initialize(
@@ -2381,7 +2280,6 @@ class MEAColumnData(PackedColumnData):
         ]
 
         interfacial_area_constraints = [
-            "log_area_interfacial_parA_eqn",
             "area_interfacial_eqn",
             "log_area_interfacial_eqn",
         ]
@@ -2542,9 +2440,9 @@ class MEAColumnData(PackedColumnData):
             for k in eqn:
                 calculate_variable_from_constraint(var[k], eqn[k])
 
-        calculate_variable_from_constraint(
-            blk.area_column, blk.column_cross_section_area_eqn
-        )
+        # calculate_variable_from_constraint(
+        #     blk.area_column, blk.column_cross_section_area_eqn
+        # )
 
         # ---------------------------------------------------------------------
         init_log.info("Step 2: Steady-State isothermal mass balance")
@@ -2688,8 +2586,8 @@ class MEAColumnData(PackedColumnData):
             "Initializing interfacial area - degrees_of_freedom = {}".format(
                 degrees_of_freedom(blk)
             )
-        )
-
+        )           
+        
         # Confusing naming convention: log_var_eqn are always of the form exp(log_var) == var.
         # log_area_interfacial is defined from the performance equation area_interfacial_eqn
         # and then area_interfacial is back-calculated from the exponential relationship
@@ -2713,6 +2611,12 @@ class MEAColumnData(PackedColumnData):
                 degrees_of_freedom(blk)
             )
         )
+
+        for c in liquid_holdup_constraints:
+            getattr(blk, c).activate()
+
+        blk.log_holdup_liq.unfix()
+        blk.holdup_liq.unfix()
 
         # Same thing with holdup_liq
         for k in blk.log_holdup_liq_eqn:
@@ -2856,9 +2760,7 @@ class MEAColumnData(PackedColumnData):
                         
         
 
-        init_log.info("Step 11b: Solve model with initialized enhancement factor - degrees_of_freedom = {}".format(
-            degrees_of_freedom(blk)
-        ))
+        init_log.info("Step 11b: Solve model with initialized enhancement factor")
 
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
             res = opt.solve(blk, tee=slc.tee, symbolic_solver_labels=True)
