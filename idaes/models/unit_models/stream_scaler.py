@@ -18,12 +18,17 @@ from functools import partial
 
 from pyomo.environ import (
     Block,
+    check_optimal_termination,
+    Param,
+    PositiveReals,
+    Reals,
+    RangeSet,
     PositiveReals,
     units as pyunits,
     Var,
 )
 from pyomo.network import Port
-from pyomo.common.config import ConfigBlock, ConfigValue, In
+from pyomo.common.config import ConfigBlock, ConfigValue, In, ListOf, Bool
 
 from idaes.core import (
     declare_process_block_class,
