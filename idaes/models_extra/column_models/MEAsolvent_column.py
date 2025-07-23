@@ -1691,11 +1691,16 @@ class MEAColumnData(PackedColumnData):
         elif mode == "absorber":
             self.eps_ref.unfix()
             self.eps_util.unfix()
+            self.CW_temp_con1.deactivate()
+            self.CW_temp_con2.deactivate()
         self.eps_ref.unfix()
         self.eps_util.unfix()
         self.N.unfix()
         
         self.N_start.unfix()
+
+        self.HE_Con1.deactivate()
+        self.HE_Con2.deactivate()
     
     
     # Scaling Routine
