@@ -230,7 +230,8 @@ class PseudoSecondOrderExplicit(object):
         def enhancement_factor_eqn(b, t, x):
             if x == b.liquid_phase.length_domain.last():
                 return Constraint.Skip
-            return b.log_enhancement_factor[t, x] == log(b.E_hat[t, x])
+            # return b.log_enhancement_factor[t, x] == log(b.E_hat[t, x])
+            return exp(b.log_enhancement_factor[t, x]) == b.E_hat[t, x]
 
         enhancement_factor_vars = [
             blk.log_enhancement_factor,
