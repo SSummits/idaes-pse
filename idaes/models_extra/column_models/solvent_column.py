@@ -391,19 +391,38 @@ and used when constructing these
         )
 
         # TODO : Consider making this a Var & Constraint
-        def rule_holdup_vap(blk, t, x):
-            if x == self.vapor_phase.length_domain.first():
-                return Expression.Skip
-            else:
-                zb = self.vapor_phase.length_domain.prev(x)
-                return blk.eps_ref - blk.holdup_liq[t, zb]
+        # def rule_holdup_vap(blk, t, x):
+        #     if x == self.vapor_phase.length_domain.first():
+        #         return Expression.Skip
+        #     else:
+        #         zb = self.vapor_phase.length_domain.prev(x)
+        #         return blk.eps_ref - blk.holdup_liq[t, zb]
 
-        self.holdup_vap = Expression(
+        # self.holdup_vap = Expression(
+        #     self.flowsheet().time,
+        #     self.vapor_phase.length_domain,
+        #     rule=rule_holdup_vap,
+        #     doc="Volumetric vapor holdup [-]",
+        # )
+        self.holdup_vap = Var(
             self.flowsheet().time,
             self.vapor_phase.length_domain,
-            rule=rule_holdup_vap,
+            initialize=1-0.97-0.001,
+            units=pyunits.dimensionless,
             doc="Volumetric vapor holdup [-]",
         )
+        self.holdup_vap[0, 0].fix(1-0.97-0.001)
+        @self.Constraint(
+            self.flowsheet().time,
+            self.vapor_phase.length_domain,
+            doc="Vapor holdup calculation",
+        )
+        def holdup_vap_eqn(blk, t, x):
+            if x == self.vapor_phase.length_domain.first():
+                return Constraint.Skip
+            else:
+                zb = self.vapor_phase.length_domain.prev(x)
+                return blk.holdup_vap[t, x] == blk.eps_ref - blk.holdup_liq[t, zb]
 
         # Area of control volume : vapor side and liquid side
         @self.Constraint(

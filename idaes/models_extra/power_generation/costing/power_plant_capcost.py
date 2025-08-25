@@ -340,7 +340,7 @@ class QGESSCostingData(FlowsheetCostingBlockData):
                     + (
                         self.chemical_costs_OC
                         if chemicals is not None
-                        else 0 * CE_index_units
+                        else 0 * CE_index_units / pyunits.year
                     )  # Initial Cost for Catalyst and Chemicals
                 )
                 * 1
