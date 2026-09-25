@@ -33,6 +33,7 @@ General assumptions:
     - Pressure drop tube and shell side (friction factor calc.)
 
 """
+
 # TODO: Missing docstrings
 # pylint: disable=missing-class-docstring
 
@@ -80,7 +81,6 @@ from idaes.models.unit_models.heat_exchanger import (
     delta_temperature_underwood_callback,
     HeatExchangerFlowPattern,
 )
-
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)
@@ -166,7 +166,7 @@ class BoilerHeatExchangerData(HeatExchangerData):
         # Elevation difference (outlet - inlet) for static pressure calculation
         self.delta_elevation = Var(
             initialize=0,
-            within=NonNegativeReals,
+            bounds=(0, None),
             doc="Elevation increase used for static pressure calculation",
             units=pyunits.m,
         )
@@ -374,7 +374,7 @@ class BoilerHeatExchangerData(HeatExchangerData):
 
         # Correction factor for overall heat transfer coefficient
         self.fcorrection_htc = Var(
-            initialize=1.0, within=NonNegativeReals, doc="Correction factor for HTC"
+            initialize=1.0, bounds=(0, None), doc="Correction factor for HTC"
         )
 
         # Correction factor for tube side pressure drop due to friction

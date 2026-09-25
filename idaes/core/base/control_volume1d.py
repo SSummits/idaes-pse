@@ -13,6 +13,7 @@
 """
 Base class for control volumes
 """
+
 # TODO: Missing docstrings
 # pylint: disable=missing-function-docstring
 
@@ -720,7 +721,7 @@ argument).""",
                     "You should set has_phase_equilibrium=False."
                 )
                 deprecation_warning(
-                    msg=msg, logger=_log, version="2.0.0", remove_in="3.0.0"
+                    msg=msg, logger=_log, version="2.0.0", remove_in="2.14.0"
                 )
                 has_phase_equilibrium = False
             else:
@@ -2422,12 +2423,10 @@ argument).""",
         difficulty of presenting spatially discretized data in a readable form
         without plotting.
         """
-        raise NotImplementedError(
-            """
+        raise NotImplementedError("""
                 Due to the difficulty in presenting spatially distributed data
                 in a clean format, ControlVolume1D does not currently support
-                the report method."""
-        )
+                the report method.""")
 
     def calculate_scaling_factors(self):
         super().calculate_scaling_factors()

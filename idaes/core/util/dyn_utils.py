@@ -15,8 +15,9 @@
 This module contains utility functions for dynamic IDAES models.
 """
 
-from pyomo.environ import Block, Constraint, Var
+from pyomo.environ import Block, Constraint, value, Var
 from pyomo.dae import DerivativeVar
+from pyomo.dae.flatten import flatten_dae_components
 from pyomo.dae.set_utils import (
     is_explicitly_indexed_by,
     is_in_block_indexed_by,
@@ -741,10 +742,22 @@ def copy_values_at_time(
             init_log.warning(msg)
             continue
 
+        def _safe_set_value(src, tgt):
+            try:
+                val = value(src)
+            except ValueError as err:
+                # Uninitialized variable
+                if "No value for uninitialized" in str(err):
+                    val = None
+                else:
+                    raise
+            tgt.set_value(val)
+
         if n == 1:
             if not copy_fixed and var_target[t_target].fixed:
                 continue
-            var_target[t_target].set_value(var_source[t_source].value)
+            _safe_set_value(src=var_source[t_source], tgt=var_target[t_target])
+
         elif n >= 2:
             index_info = get_index_set_except(var_target, time_target)
             non_time_index_set = index_info["set_except"]
@@ -754,7 +767,9 @@ def copy_values_at_time(
                 target_index = index_getter(non_time_index, t_target)
                 if not copy_fixed and var_target[target_index].fixed:
                     continue
-                var_target[target_index].set_value(var_source[source_index].value)
+                _safe_set_value(
+                    src=var_source[source_index], tgt=var_target[target_index]
+                )
 
     blk_visited = set()
     for blk_target in fs_tgt.component_objects(Block):
@@ -826,3 +841,32 @@ def copy_values_at_time(
                         local_parent, var_target.parent_component().local_name
                     )[var_target.index()]
                     var_target.set_value(var_source.value)
+
+
+# This is similar to copy_values_at_time, but the change from copying values
+# within one flowsheet to between two flowsheets adds a ton of error checking
+# to that function that is not needed here.
+def copy_values_from_point(blk, continuous_set, t0=None):
+    """
+    Function that propagates values from the point t0 in continuous_set to all
+    other values in that set. Typically used to copy steady state values from
+    one time point to all other time points
+
+    Args:
+        blk : Block whose variables need to be copied
+        continuous_set : ContinuousSet whose values need to be copied to other
+            points
+        t0 : Source point whose values will be copied
+
+    Returns:
+        None
+    """
+
+    _, indexed_vars = flatten_dae_components(blk, continuous_set, Var, active=True)
+    # Copy initial conditions forward
+    for var in indexed_vars:
+        for t in continuous_set:
+            if t == t0:
+                continue
+            else:
+                var[t].value = var[t0].value

@@ -9,6 +9,7 @@ Scaling Toolbox
 The following modules compose the core IDAES Scaling Toolbox.
 
 .. module:: idaes.core.util.scaling
+  :no-index:
 
 .. toctree::
     :maxdepth: 2
@@ -16,5 +17,6 @@ The following modules compose the core IDAES Scaling Toolbox.
     scaling_utils
     custom_scaler
     autoscaler
+    arc_constraint_scaler
     scaling_profiler
 

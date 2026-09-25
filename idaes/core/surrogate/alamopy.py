@@ -34,7 +34,6 @@ from idaes.core.surrogate.base.surrogate_base import SurrogateTrainer, Surrogate
 from idaes.core.util.exceptions import ConfigurationError
 import idaes.logger as idaeslog
 
-
 # Set up logger
 _log = idaeslog.getLogger(__name__)
 
@@ -1043,7 +1042,7 @@ class AlamoTrainer(SurrogateTrainer):
             output_labels : list of str
                List of strings of the output_labels (in order)
             has_validation_data : bool
-                Bool indicating whether valdiation data was included in ALAMO run
+                Bool indicating whether validation data was included in ALAMO run
 
         Returns:
             trace_dict: contents of trace file as a dict

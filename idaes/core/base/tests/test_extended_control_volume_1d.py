@@ -15,6 +15,7 @@ Tests for ExtendedControlVolumeBlockData.
 
 Author: Andrew Lee
 """
+
 import pytest
 from pyomo.environ import ConcreteModel, Constraint, units
 from pyomo.util.check_units import assert_units_consistent
@@ -30,7 +31,7 @@ from idaes.core.util.exceptions import (
 from idaes.core.util.testing import (
     PhysicalParameterTestBlock,
 )
-from idaes.core.util.model_diagnostics import DiagnosticsToolbox
+from idaes.core.util import DiagnosticsToolbox
 
 
 # -----------------------------------------------------------------------------

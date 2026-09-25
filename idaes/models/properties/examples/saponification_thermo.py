@@ -14,13 +14,13 @@
 Example property package for the saponification of Ethyl Acetate with NaOH
 Assumes dilute solutions with properties of H2O.
 """
+
 # TODO: Missing docstrings
 # pylint: disable=missing-function-docstring
 
 # Import Pyomo libraries
 from pyomo.environ import (
     Constraint,
-    NonNegativeReals,
     Param,
     PositiveReals,
     Reals,
@@ -330,7 +330,7 @@ class SaponificationStateBlockData(StateBlockData):
         # Create state variables
         self.flow_vol = Var(
             initialize=1.0,
-            domain=NonNegativeReals,
+            bounds=(0, None),
             doc="Total volumentric flowrate [m^3/s]",
             units=units.m**3 / units.s,
         )
@@ -350,7 +350,7 @@ class SaponificationStateBlockData(StateBlockData):
         )
         self.conc_mol_comp = Var(
             self.params.component_list,
-            domain=NonNegativeReals,
+            bounds=(0, None),
             initialize=100.0,
             doc="Component molar concentrations " "[mol/m^3]",
             units=units.mol / units.m**3,

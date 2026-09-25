@@ -16,6 +16,7 @@ package
 
 Authors: Andrew Lee, Douglas Allan
 """
+
 # TODO: Missing docstrings
 # pylint: disable=missing-function-docstring
 
@@ -26,7 +27,6 @@ from types import MethodType
 from pyomo.environ import (
     Constraint,
     Expression,
-    NonNegativeReals,
     Var,
     value,
     units as pyunits,
@@ -82,21 +82,18 @@ def define_state(b):
     b.flow_mol_phase_comp = Var(
         b.phase_component_set,
         initialize=f_init,
-        domain=NonNegativeReals,
         bounds=f_bounds,
         doc="Phase-component molar flowrate",
         units=units.FLOW_MOLE,
     )
     b.pressure = Var(
         initialize=p_init,
-        domain=NonNegativeReals,
         bounds=p_bounds,
         doc="State pressure",
         units=units.PRESSURE,
     )
     b.temperature = Var(
         initialize=t_init,
-        domain=NonNegativeReals,
         bounds=t_bounds,
         doc="State temperature",
         units=units.TEMPERATURE,

@@ -14,6 +14,7 @@
 Initializer class for implementing Hierarchical initialization routines for
 IDAES models with standard forms (e.g. units with 1 control volume)
 """
+
 from pyomo.environ import Block
 from pyomo.common.config import ConfigValue, Bool
 
@@ -152,7 +153,6 @@ class SingleControlVolumeUnitInitializer(ModularInitializerBase):
         prop_init = self.get_submodel_initializer(control_volume.properties_in)
 
         if prop_init is not None:
-            # import pdb; pdb.set_trace()
             prop_init.initialize(
                 model=control_volume.properties_in,
                 output_level=self.get_output_level(),

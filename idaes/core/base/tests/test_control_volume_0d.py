@@ -15,6 +15,7 @@ Tests for ControlVolumeBlockData.
 
 Author: Andrew Lee
 """
+
 import pytest
 from pyomo.environ import ConcreteModel, Constraint, Expression, Set, units, Var
 from pyomo.util.check_units import assert_units_consistent, assert_units_equivalent
@@ -636,7 +637,7 @@ def test_add_material_balances_single_phase_w_equilibrium(caplog):
         "include phase equilibrium terms. Some property packages support phase "
         "equilibrium implicitly in which case additional terms are not "
         "necessary. You should set has_phase_equilibrium=False.  (deprecated in "
-        "2.0.0, will be removed in (or after) 3.0.0)"
+        "2.0.0, will be removed in (or after) 2.14.0)"
     )
     assert msg.replace(" ", "") in caplog.records[0].message.replace("\n", "").replace(
         " ", ""
